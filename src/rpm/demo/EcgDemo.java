@@ -2,6 +2,8 @@ package rpm.demo;
 
 import rpm.domain.VitalSnapshot;
 import rpm.domain.VitalType;
+import rpm.simulation.PatientScenario;
+import rpm.simulation.PatientScenarioFactory;
 import rpm.simulation.PatientSimulator;
 import rpm.ui.EcgPanel;
 
@@ -22,7 +24,9 @@ import java.util.Map;
  */
 public class EcgDemo {
 
-    private final PatientSimulator simulator = new PatientSimulator();
+    private final PatientSimulator simulator =
+            PatientScenarioFactory.create(PatientScenario.NORMAL_ADULT);
+
     private final EcgPanel ecgPanel = new EcgPanel();
     private final JLabel vitalsLabel = new JLabel(
             "HR: -- bpm    RR: -- breaths/min    BP: --/-- mmHg    Temp: -- °C"

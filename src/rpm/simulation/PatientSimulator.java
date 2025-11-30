@@ -50,6 +50,27 @@ public class PatientSimulator {
         int ecgWindowSamples = (int) Math.round(ecgSamplingFrequencyHz * ecgWindowSeconds);
         this.ecgRingBuffer = new EcgRingBuffer(ecgWindowSamples);
     }
+
+    /**
+     * Scenario-aware constructor that lets the factory pass in pre-configured simulators.
+     */
+    public PatientSimulator(HeartRateSimulator heartRateSimulator,
+                            RespRateSimulator respRateSimulator,
+                            BloodPressureSimulator bloodPressureSimulator,
+                            TemperatureSimulator temperatureSimulator) {
+
+        this.heartRateSimulator = heartRateSimulator;
+        this.respRateSimulator = respRateSimulator;
+        this.bloodPressureSimulator = bloodPressureSimulator;
+        this.temperatureSimulator = temperatureSimulator;
+
+        // ECG config is the same as the default constructor
+        this.ecgGenerator = new EcgsynGenerator();
+        int ecgWindowSamples =
+                (int) Math.round(ecgSamplingFrequencyHz * ecgWindowSeconds);
+        this.ecgRingBuffer = new EcgRingBuffer(ecgWindowSamples);
+    }
+
     public VitalSnapshot nextSnapshot(Instant time) {
         Map<VitalType, Double> values = new EnumMap<>(VitalType.class);
 

@@ -92,7 +92,7 @@ public class EcgPanel extends JPanel {
 
         int baselineY = height / 2;
 
-        double yScale = (height * 0.4) / CALIBRATION_MAX_MV;  
+        double yScale = (height * 0.4) / CALIBRATION_MAX_MV;
 
         // Baseline
         g.setColor(new Color(120, 120, 120));
