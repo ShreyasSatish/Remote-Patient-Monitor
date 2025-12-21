@@ -1,14 +1,13 @@
 package rpm.simulation;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Random;
 
 /**
- * Simulates arterial blood pressure for a normal adult.
- * The simulator tracks systolic and diastolic pressure internally.
+ * Simulates arterial blood pressure. Tracks systolic and diastolic internally.
  */
 public class BloodPressureSimulator implements VitalSimulator {
-
     private final Random random;
     private final double baselineSystolic;
     private final double baselineDiastolic;
@@ -19,14 +18,19 @@ public class BloodPressureSimulator implements VitalSimulator {
     private double currentDiastolic;
 
     public BloodPressureSimulator() {
-        this(120.0, 80.0, 90.0, 140.0);
+        this(120.0, 80.0, 90.0, 140.0, new Random());
+    }
+
+    public BloodPressureSimulator(double baselineSystolic, double baselineDiastolic, double minSystolic, double maxSystolic) {
+        this(baselineSystolic, baselineDiastolic, minSystolic, maxSystolic, new Random());
     }
 
     public BloodPressureSimulator(double baselineSystolic,
                                   double baselineDiastolic,
                                   double minSystolic,
-                                  double maxSystolic) {
-        this.random = new Random();
+                                  double maxSystolic,
+                                  Random random) {
+        this.random = Objects.requireNonNull(random, "random");
         this.baselineSystolic = baselineSystolic;
         this.baselineDiastolic = baselineDiastolic;
         this.minSystolic = minSystolic;
@@ -37,7 +41,7 @@ public class BloodPressureSimulator implements VitalSimulator {
 
     @Override
     public double nextValue(Instant time) {
-        double randomStep = random.nextGaussian() * 2.0; // ~ +/- 4 mmHg
+        double randomStep = random.nextGaussian() * 2.0;
         double pullToBaseline = (baselineSystolic - currentSystolic) * 0.05;
 
         currentSystolic = currentSystolic + randomStep + pullToBaseline;
@@ -48,11 +52,8 @@ public class BloodPressureSimulator implements VitalSimulator {
             currentSystolic = maxSystolic;
         }
 
-        // Diastolic follows systolic but with smaller excursions.
-        double targetDiastolic =
-                baselineDiastolic + (currentSystolic - baselineSystolic) * 0.5;
+        double targetDiastolic = baselineDiastolic + (currentSystolic - baselineSystolic) * 0.5;
         double diastolicNoise = random.nextGaussian() * 1.5;
-
         currentDiastolic = targetDiastolic + diastolicNoise;
 
         return currentSystolic;
