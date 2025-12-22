@@ -4,6 +4,13 @@
 *.iws
 *.ipr
 
+# gradle
+.gradle/
+build/
+out/
+.DS_Store
+
+
 # Compiled class file
 *.class
 
