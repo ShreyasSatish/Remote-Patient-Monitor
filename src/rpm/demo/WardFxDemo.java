@@ -17,10 +17,19 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import rpm.domain.PatientId;
+import rpm.domain.alarm.*;
 import rpm.simulation.PatientEventType;
 import rpm.simulation.PatientVitalsRow;
 import rpm.simulation.WardManager;
 import rpm.ui.fx.EcgCanvas;
+
+import javafx.scene.control.Label;
+import javafx.scene.paint.Color;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.geometry.Insets;
+
 
 import java.time.Instant;
 import java.util.List;
@@ -28,9 +37,59 @@ import java.util.List;
 public class WardFxDemo extends Application {
     private static final double DT_SECONDS = 0.04;
 
+
+
+
     @Override
     public void start(Stage stage) {
         WardManager ward = new WardManager(8);
+
+        AlarmEngine engine = new AlarmEngine(AlarmConfig.defaultAdult());
+        AlarmService alarmService = new AlarmService(engine);
+        alarmService.addListener(new ConsoleAlarmListener());
+        ward.addListener(alarmService);
+
+        Label alarmBanner = new Label("Status: OK");
+        alarmBanner.setMinHeight(30);
+        alarmBanner.setStyle("-fx-font-weight: bold; -fx-padding: 5;");
+
+        alarmService.addListener(new AlarmListener() {
+            @Override
+            public void onAlarmTransition(AlarmTransition t) {
+                // ignore
+            }
+
+            @Override
+            public void onAlarmState(PatientId id, Instant time, AlarmState state) {
+                if (!id.equals(ward.getSelectedPatientId())) return;
+
+                javafx.application.Platform.runLater(() -> {
+                    alarmBanner.setText("Status: " + state.getOverall());
+
+                    Color c;
+                    switch (state.getOverall()) {
+                        case GREEN:
+                            c = Color.LIGHTGREEN;
+                            break;
+                        case AMBER:
+                            c = Color.GOLD;
+                            break;
+                        case RED:
+                            c = Color.ORANGERED;
+                            break;
+                        default:
+                            c = Color.LIGHTGRAY;
+                    }
+
+
+                    alarmBanner.setBackground(new Background(
+                            new BackgroundFill(c, CornerRadii.EMPTY, Insets.EMPTY)
+                    ));
+                });
+            }
+        });
+
+
         EcgCanvas ecg = new EcgCanvas();
 
         Instant[] simTime = {Instant.now()};
@@ -176,4 +235,5 @@ public class WardFxDemo extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
 }
