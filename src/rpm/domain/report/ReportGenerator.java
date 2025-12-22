@@ -44,6 +44,7 @@ public final class ReportGenerator {
         double max = Double.NEGATIVE_INFINITY;
 
         void add(double v) {
+            // n is just the number of data points used for the report. 60 will be max for now, with 1 min.
             n++;
             sum += v;
             if (v < min) min = v;
