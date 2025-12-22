@@ -30,6 +30,10 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.geometry.Insets;
 
+import rpm.domain.report.InMemoryPatientDataStore;
+import rpm.domain.report.ReportGenerator;
+import rpm.domain.report.PatientReport;
+import rpm.domain.report.VitalSummary;
 
 import java.time.Instant;
 import java.util.List;
@@ -37,17 +41,18 @@ import java.util.List;
 public class WardFxDemo extends Application {
     private static final double DT_SECONDS = 0.04;
 
-
-
-
     @Override
     public void start(Stage stage) {
         WardManager ward = new WardManager(8);
+
+        Instant[] simTime = {Instant.now()};
+        double[] sinceVitalsUpdate = {0.0};
 
         AlarmEngine engine = new AlarmEngine(AlarmConfig.defaultAdult());
         AlarmService alarmService = new AlarmService(engine);
         alarmService.addListener(new ConsoleAlarmListener());
         ward.addListener(alarmService);
+
 
         Label alarmBanner = new Label("Status: OK");
         alarmBanner.setMinHeight(30);
@@ -62,6 +67,7 @@ public class WardFxDemo extends Application {
             @Override
             public void onAlarmState(PatientId id, Instant time, AlarmState state) {
                 if (!id.equals(ward.getSelectedPatientId())) return;
+                // for the actual UI. currently just console
 
                 javafx.application.Platform.runLater(() -> {
                     alarmBanner.setText("Status: " + state.getOverall());
@@ -89,11 +95,44 @@ public class WardFxDemo extends Application {
             }
         });
 
+        // to generate the report
+        // store 5 minutes so "last 1 minute" always has data, but doesnt store crazy large amoutns of data for now
+        InMemoryPatientDataStore store = new InMemoryPatientDataStore(java.time.Duration.ofMinutes(5));
+        ward.addListener(store);
+        alarmService.addListener(store);
+
+        ReportGenerator reportGen = new ReportGenerator();
+        Button reportBtn = new Button("Report (last 1 min)");
+        reportBtn.setOnAction(e -> {
+            PatientId id = ward.getSelectedPatientId();
+            Instant to = simTime[0];
+            Instant from = to.minusSeconds(60);
+
+            PatientReport r = reportGen.generate(id, from, to, store);
+
+            System.out.println("==== REPORT " + id.getDisplayName() + " ====");
+            System.out.println("Window: " + from + " → " + to);
+
+            for (var entry : r.getSummaries().entrySet()) {
+                VitalSummary vs = entry.getValue();
+                System.out.printf(
+                        "%s: n=%d mean=%.2f min=%.2f max=%.2f%n",
+                        entry.getKey(), vs.getN(), vs.getMean(), vs.getMin(), vs.getMax()
+                );
+            }
+
+            if (!r.getAlarmTransitions().isEmpty()) {
+                System.out.println("Alarm transitions:");
+                r.getAlarmTransitions().forEach(t ->
+                        System.out.printf("  %s %s %s→%s (%s)%n",
+                                t.getTime(), t.getVitalType(), t.getFrom(), t.getTo(), t.getReason())
+                );
+            } else {
+                System.out.println("No alarm transitions in window.");
+            }
+        });
 
         EcgCanvas ecg = new EcgCanvas();
-
-        Instant[] simTime = {Instant.now()};
-        double[] sinceVitalsUpdate = {0.0};
 
         ObservableList<PatientId> ids = FXCollections.observableArrayList(ward.getPatientIds());
 
@@ -150,9 +189,11 @@ public class WardFxDemo extends Application {
         Button hfBtn = new Button("Force HF Decomp");
         hfBtn.setOnAction(e -> triggerSelected(ward, selector, PatientEventType.HEART_FAILURE_DECOMP, simTime[0]));
 
-        HBox topBar = new HBox(10, selector, addBtn, removeBtn);
+        // added report generator button here -sb
+
+        HBox topBar = new HBox(10, selector, addBtn, removeBtn, reportBtn);
         HBox eventBar = new HBox(10, feverBtn, tachyBtn, respBtn, bpSpikeBtn, bpDropBtn, hfBtn);
-        VBox topArea = new VBox(10, topBar, eventBar);
+        VBox topArea = new VBox(10, alarmBanner, topBar, eventBar);
 
         TableView<PatientVitalsRow> table = new TableView<>();
         table.setItems(FXCollections.observableArrayList());
