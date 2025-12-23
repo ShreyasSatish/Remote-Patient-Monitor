@@ -6,20 +6,20 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
-@WebServlet(urlPatterns={"/patients","/doctors"},loadOnStartup = 1)
+@WebServlet(urlPatterns={"/bed01","/bed02"},loadOnStartup = 1)
 public class servletSetup extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
 
         String test = req.getServletPath();
-        if (test.equals("/doctors")){
+        if (test.equals("/bed01")){
             resp.setContentType("text/html");
-            resp.getWriter().write("Hello, doctors!");
+            resp.getWriter().write("Hello bed01");
         }
 
-        if (test.equals("/patients")){
+        if (test.equals("/bed02")){
             resp.setContentType("text/html");
-            resp.getWriter().write("Hello, patient!");
+            resp.getWriter().write("Hello bed02");
         }
     }
 
