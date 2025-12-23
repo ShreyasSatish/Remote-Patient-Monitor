@@ -15,14 +15,14 @@ public final class RpmApp extends Application {
     public void start(Stage stage) {
 
 
-        // Core services (already exist)
+        // core services (already exist)
         WardManager ward = new WardManager(8);
 
         AlarmEngine alarmEngine = new AlarmEngine(AlarmConfig.defaultAdult());
         AlarmService alarmService = new AlarmService(alarmEngine);
         ward.addListener(alarmService);
 
-        // In-memory history for demo/reporting
+        // in memory history for demo/reporting
         InMemoryPatientDataStore store = new InMemoryPatientDataStore(Duration.ofMinutes(10));
         ward.addListener(store);
         alarmService.addListener(store);

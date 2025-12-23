@@ -31,11 +31,11 @@ public final class MenuView extends BorderPane {
         right.setPadding(new Insets(15));
         right.setFillWidth(true);
 
-        // Split layout
+        // split layout
         HBox content = new HBox(15, left, right);
         content.setPadding(new Insets(10));
 
-        // Make both sides grow
+        // make both sides grow
         HBox.setHgrow(left, Priority.ALWAYS);
         HBox.setHgrow(right, Priority.ALWAYS);
         left.setPrefWidth(520);

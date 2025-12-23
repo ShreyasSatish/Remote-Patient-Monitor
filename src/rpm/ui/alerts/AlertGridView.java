@@ -28,7 +28,7 @@ public final class AlertGridView extends VBox {
         grid.getChildren().clear();
 
         int cols = (int) Math.ceil(Math.sqrt(Math.max(1, tiles.size())));
-        cols = Math.max(2, Math.min(cols, 4)); // keep it sane: up to 4 cols for 16 max
+        cols = Math.max(2, Math.min(cols, 4)); // keep it up to 4 cols for 16 max
 
         int r = 0, c = 0;
         for (AlertTileModel t : tiles) {

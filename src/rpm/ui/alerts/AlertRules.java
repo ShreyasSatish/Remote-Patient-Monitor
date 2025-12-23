@@ -9,11 +9,9 @@ import java.time.Duration;
 
 public final class AlertRules {
 
-    /** Red-only for now: consider any non-green as alerting (AMBER/RED). */
     public static boolean isAlertingRedOnly(AlarmState s) {
         if (s == null) return false;
-        // If you truly want ONLY RED later, change to: return s.getOverall() == AlarmLevel.RED;
-        return s.getOverall() != AlarmLevel.GREEN;
+        return s.getOverall() == AlarmLevel.RED;
     }
 
     public static Duration resolveDuration(AppContext ctx) {
@@ -26,9 +24,8 @@ public final class AlertRules {
             case MIN_1: return Duration.ofMinutes(1);
             case UNTIL_RESOLVED:
             default:
-                // For “until resolved”, we can suppress for a long time
-                // (or you can implement a checkbox popup later).
-                return Duration.ofHours(24);
+                return Duration.ofHours(1);
+                // potentially change this
         }
     }
 

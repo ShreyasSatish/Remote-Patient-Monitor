@@ -28,7 +28,7 @@ public final class DashboardController {
         this.grid = grid;
         this.banner = banner;
 
-        // Banner search behaviour: simple bed number search or "contains" label
+        // banner search behaviour for now: bed number search or "contains" label
         TextField search = banner.getSearchField();
         search.setOnAction(e -> {
             String q = search.getText().trim();
