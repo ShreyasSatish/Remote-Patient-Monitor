@@ -16,6 +16,7 @@ public final class AlarmService implements WardDataListener {
     public AlarmService(AlarmEngine engine) {
         this.engine = engine;
     }
+    public AlarmState getState(PatientId id) { return engine.getState(id); }
 
     public void addListener(AlarmListener l) {
         if (l != null) listeners.add(l);

@@ -15,7 +15,7 @@ java {
 }
 
 application {
-    mainClass = 'rpm.demo.WardFxDemo'
+    mainClass = 'rpm.ui.app.RpmApp'
 }
 
 sourceSets {

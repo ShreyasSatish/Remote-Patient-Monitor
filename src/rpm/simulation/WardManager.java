@@ -3,6 +3,8 @@ package rpm.simulation;
 import rpm.domain.PatientId;
 import rpm.domain.VitalSnapshot;
 import rpm.domain.VitalType;
+import rpm.simulation.ChronicCondition;
+
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -10,6 +12,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.EnumSet;
+
 
 public class WardManager {
     public static final int MIN_PATIENTS = 8;
@@ -69,9 +73,34 @@ public class WardManager {
         return cards.get(id);
     }
 
+    /**
     public synchronized PatientId addPatient() {
         return addPatientInternal(Instant.now());
+        // String label, List<String> conditions - to go in addPatient later
     }
+
+
+    public synchronized PatientId addPatient(String label, EnumSet<ChronicCondition> conditions) {
+        PatientId id = addPatientInternal(Instant.now());
+        cards.put(id, new PatientCard(id, label, conditions));
+        return id;
+    }
+
+     **/
+
+    public synchronized PatientId addPatient(String label, EnumSet<ChronicCondition> conditions) {
+        PatientId id = addPatientInternal(Instant.now());
+
+        PatientCard newCard = new PatientCard(id, label, conditions);
+        cards.put(id, newCard);
+
+        PatientSimulator sim = patients.get(id);
+        if (sim != null) sim.setChronicConditions(newCard.getConditions());
+
+        return id;
+    }
+
+
 
     public synchronized boolean removePatient(PatientId id) {
         if (id == null || !patients.containsKey(id)) return false;
