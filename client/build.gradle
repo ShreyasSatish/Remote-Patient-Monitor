@@ -26,3 +26,9 @@ javafx {
     version = "17.0.10"
     modules = ['javafx.controls']
 }
+
+dependencies {
+
+    // JSON support for TelemetryService
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
+}

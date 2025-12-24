@@ -31,6 +31,12 @@ dependencies {
     compileOnly group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    // Servlet API (provided by container like Tomcat)
+    providedCompile 'javax.servlet:javax.servlet-api:4.0.1'
+
+    // JSON parsing (REQUIRED for TelemetryServlet)
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
 }
 test {
     useJUnitPlatform()
