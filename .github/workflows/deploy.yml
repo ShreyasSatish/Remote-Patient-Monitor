@@ -32,7 +32,7 @@ jobs:
 
       - name: Rename war file
         run: |
-          mv ./build/libs/servlet-1.0-SNAPSHOT.war ./ROOT.war
+          mv ./build/libs/servlet-1.0-SNAPSHOT.war
 
       - name: Deploy to Tsuru
         env:
