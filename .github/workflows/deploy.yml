@@ -1,52 +1,41 @@
-name: Deploy servlet to Tsuru
+name: Deploy to Tsuru
 
 on:
   push:
     branches:
-      - cloud-servlet
+      - cloud-servlet  # Trigger on push to the main branch. Change this as needed.
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build servlet WAR only
+      - name: Build
         run: |
           chmod +x gradlew
-          ./gradlew :servlet:clean :servlet:war
-
-      - name: Offer artifact debug
-        run: |
-          echo "=== WARs produced ==="
-          ls -lah servlet/build/libs || true
+          ./gradlew build :servlet:clean :servlet:war
 
       - name: Install Tsuru CLI
         run: |
           curl -fsSL https://raw.githubusercontent.com/tsuru/tsuru-client/master/install.sh | sh
-          tsuru version || true
+          echo "Tsuru CLI installed"
 
-      - name: Configure Tsuru target
+      - name: Add Target
         env:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
           TSURU_HOST: ${{ secrets.TSURU_HOST }}
         run: |
-          tsuru target-add default "$TSURU_HOST" -s
-          tsuru target-set default
-          tsuru target-list
+          tsuru target-add default $TSURU_HOST -s
 
-      - name: Prepare deploy directory (ROOT.war)
+      - name: Rename war file
         run: |
-          rm -rf deploy
-          mkdir -p deploy
-          mv servlet/build/libs/*.war deploy/ROOT.war
-          ls -lah deploy
+          mv servlet/build/libs/servlet-1.0-SNAPSHOT.war ./ROOT.war
 
       - name: Deploy to Tsuru
         env:
           TSURU_TOKEN: ${{ secrets.TSURU_TOKEN }}
         run: |
-          tsuru app-info -a bioeng-rancho-app
-          tsuru app-deploy -a bioeng-rancho-app deploy
+          tsuru app-deploy -a bioeng-rancho-app ROOT.war
