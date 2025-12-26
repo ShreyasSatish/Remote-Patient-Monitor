@@ -50,7 +50,7 @@ public class TelemetryService {
             HttpRequest request =
                     HttpRequest.newBuilder()
                             .uri(URI.create(
-                                    "http://localhost:8080/servlet/telemetry"))
+                                    "https://bioeng-rancho-app.impaas.uk/telemetry"))
                             .header("Content-Type",
                                     "application/json")
                             .POST(HttpRequest.BodyPublishers
