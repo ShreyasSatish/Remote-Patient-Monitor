@@ -2,7 +2,6 @@
 
 <?import javafx.scene.control.ChoiceBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -11,7 +10,7 @@
 
 <!-- We may need to change the fx:controller later to make the settings page actually functional -->
 
-<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #B5B2C2; -fx-border-color: #5A7D7C;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.beginsecure.remotepatientmonitor.SettingsController">
+<GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #B5B2C2; -fx-border-color: #5A7D7C; -fx-hgap: 0pt;" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.beginsecure.remotepatientmonitor.SettingsController">
   <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -38,6 +37,5 @@
          </font>
       </Label>
       <Slider blockIncrement="0.5" majorTickUnit="1.0" max="10.0" minorTickCount="1" showTickLabels="true" showTickMarks="true" style="-fx-show-tick-labels: true; -fx-show-tick-marks: true;" value="5.0" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="2" />
-      <Separator prefWidth="200.0" style="-fx-background-color: #5A7D7C; -fx-border-color: #5A7D7C;" GridPane.columnSpan="3" GridPane.rowIndex="3" GridPane.valignment="TOP" />
    </children>
 </GridPane>
