@@ -2,6 +2,8 @@ plugins {
     id 'application'
     id 'java'
     id 'org.openjfx.javafxplugin' version '0.0.14'
+    id 'org.javamodularity.moduleplugin' version '1.8.15'
+    id 'org.beryx.jlink' version '2.25.0'
 }
 
 //java {
@@ -9,6 +11,10 @@ plugins {
 //        languageVersion = JavaLanguageVersion.of(17)
 //    }
 //}
+
+repositories {
+    mavenCentral()
+}
 
 application {
     mainClass = 'rpm.demo.WardFxDemo'
@@ -19,16 +25,32 @@ sourceSets {
         java {
             srcDirs = ['src']
         }
+        resources {
+            srcDirs = ['src']
+        }
     }
 }
 
 javafx {
     version = "17.0.10"
-    modules = ['javafx.controls']
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.web', 'javafx.swing', 'javafx.media']
 }
 
 dependencies {
 
     // JSON support for TelemetryService
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
+    // JavaFX dependencies
+    implementation 'org.openjfx:javafx-controls:17.0.10'
+    implementation 'org.openjfx:javafx-fxml:17.0.10'
+    implementation 'org.openjfx:javafx-web:17.0.10'
+    implementation("org.controlsfx:controlsfx:11.2.1")
+    implementation("com.dlsc.formsfx:formsfx-core:11.6.0")
+    implementation("net.synedra:validatorfx:0.6.1")
+    implementation("org.kordamp.ikonli:ikonli-javafx:12.3.1")
+    implementation("org.kordamp.bootstrapfx:bootstrapfx-core:0.4.0")
+    implementation("eu.hansolo:tilesfx:21.0.9")
+    implementation("com.github.almasb:fxgl:17.3")
+//    testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
+//    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
