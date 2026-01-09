@@ -70,11 +70,11 @@ goto fail
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\lib\client.jar;%APP_HOME%\lib\javafx-controls-17.0.10-win.jar;%APP_HOME%\lib\javafx-graphics-17.0.10-win.jar;%APP_HOME%\lib\javafx-graphics-17.0.10.jar;%APP_HOME%\lib\javafx-base-17.0.10-win.jar;%APP_HOME%\lib\javafx-base-17.0.10.jar;%APP_HOME%\lib\jackson-annotations-2.15.3.jar;%APP_HOME%\lib\jackson-core-2.15.3.jar;%APP_HOME%\lib\jackson-databind-2.15.3.jar
+set CLASSPATH=%APP_HOME%\lib\client.jar;%APP_HOME%\lib\javafx-controls-17.0.10-mac-aarch64.jar;%APP_HOME%\lib\javafx-graphics-17.0.10-mac-aarch64.jar;%APP_HOME%\lib\javafx-graphics-17.0.10.jar;%APP_HOME%\lib\javafx-base-17.0.10-mac-aarch64.jar;%APP_HOME%\lib\javafx-base-17.0.10.jar;%APP_HOME%\lib\jackson-annotations-2.15.3.jar;%APP_HOME%\lib\jackson-core-2.15.3.jar;%APP_HOME%\lib\jackson-databind-2.15.3.jar
 
 
 @rem Execute client
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %CLIENT_OPTS%  -classpath "%CLASSPATH%" rpm.demo.WardFxDemo %*
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %CLIENT_OPTS%  -classpath "%CLASSPATH%" rpm.ui.app.RpmApp %*
 
 :end
 @rem End local scope for the variables with windows NT shell

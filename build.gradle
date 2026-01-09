@@ -1,18 +1,6 @@
-plugins {
-    id 'application'
-    id 'java'
-    id 'org.openjfx.javafxplugin' version '0.0.14'
-}
-
 allprojects {
     repositories {
         mavenCentral()
-    }
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
     }
 }
 
@@ -21,20 +9,12 @@ tasks.register("buildAll") {
             ":client:build",
             "servlet:build"
     )
-    application {
-        mainClass = 'rpm.ui.app.RpmApp'
-    }
+}
 
-    sourceSets {
-        main {
-            java {
-                srcDirs = ['src']
-            }
-        }
-    }
+tasks.register("runAll") {
+    dependsOn(
+            "servlet:appStart",
+            ":client:run"
 
-    javafx {
-        version = "17.0.10"
-        modules = ['javafx.controls']
-    }
+    )
 }
