@@ -1,7 +1,8 @@
 plugins {
-    id 'war'    // Creates a webapp jar file, ie a '.war' file. Extends the ‘java’ plugin
-    id 'org.gretty' version '3.1.1' // This includes a jetty webserver
+    id 'war'
+    id 'org.gretty' version '3.1.1'
 }
+
 version '1.0-SNAPSHOT'
 
 repositories {
@@ -10,7 +11,6 @@ repositories {
 
 war{
     sourceCompatibility = JavaVersion.VERSION_11
-    // all of the library jar files used are to be zipped into the war file:-
     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
     from {
         configurations.runtimeClasspath.collect {
@@ -18,8 +18,7 @@ war{
         }
     }
 }
-// We have to create a new gradle task called ‘stage’ that Heroku will run
-// when deploying the war file
+
 tasks.register('stage'){
     dependsOn 'build'
     dependsOn 'clean'
@@ -27,17 +26,16 @@ tasks.register('stage'){
 build.mustRunAfter clean
 
 dependencies {
-    // to include the servlet libraries
     compileOnly group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-
-    // Servlet API (provided by container like Tomcat)
     providedCompile 'javax.servlet:javax.servlet-api:4.0.1'
 
-    // JSON parsing (REQUIRED for TelemetryServlet)
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
+    implementation 'org.postgresql:postgresql:42.7.3'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
 }
+
 test {
     useJUnitPlatform()
 }

@@ -1,10 +1,7 @@
-//Allows different telemetry storage strategies (in-memory, database, file, etc.).
+import java.util.Map;
 
 public abstract class AbstractTelemetryStore {
-
-    //Store telemetry data for a patient
-    public abstract void store(
-            String bedId,
-            PatientTelemetry data
-    );
+    public abstract void store(String bedId, PatientTelemetry data);
+    public abstract PatientTelemetry get(String bedId);
+    public abstract Map<String, PatientTelemetry> getAll();
 }
