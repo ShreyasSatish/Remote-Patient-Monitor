@@ -14,6 +14,8 @@ public final class RpmApp extends Application {
     @Override
     public void start(Stage stage) {
 
+        stage.setMinWidth(800);
+        stage.setMinHeight(600);
 
         // core services (already exist)
         WardManager ward = new WardManager(8);
