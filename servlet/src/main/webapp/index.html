@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>RPM Telemetry</title>
+    <style>
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 16px; }
+        header { display:flex; gap:12px; align-items:baseline; flex-wrap:wrap; }
+        .muted { color:#666; }
+        .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:12px; margin-top:12px; }
+        .card { border:1px solid #ddd; border-radius:10px; padding:12px; }
+        .title { font-weight:700; margin-bottom:8px; display:flex; justify-content:space-between; }
+        table { width:100%; border-collapse:collapse; }
+        td { padding:4px 0; }
+        td.k { color:#666; width:40%; }
+        .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+        select, button { padding:6px 10px; }
+        canvas { width:100%; height:140px; border:1px solid #ddd; border-radius:10px; }
+        .err { color:#b00020; white-space:pre-wrap; }
+    </style>
+</head>
+<body>
+<header>
+    <h2 style="margin:0;">RPM Telemetry</h2>
+    <div class="muted">Auto-refreshing</div>
+    <div id="status" class="muted"></div>
+</header>
+
+<div class="row">
+    <label class="muted">ECG bed:</label>
+    <select id="bedSelect"></select>
+    <button id="refreshBtn">Refresh now</button>
+</div>
+
+<div style="margin-top:10px;">
+    <canvas id="ecgCanvas" width="900" height="220"></canvas>
+</div>
+
+<div id="error" class="err"></div>
+<div id="cards" class="grid"></div>
+
+<script>
+    const statusEl = document.getElementById("status");
+    const errorEl = document.getElementById("error");
+    const cardsEl = document.getElementById("cards");
+    const bedSelect = document.getElementById("bedSelect");
+    const canvas = document.getElementById("ecgCanvas");
+    const ctx = canvas.getContext("2d");
+
+
+    const TELEMETRY_URL = new URL("telemetry", window.location.href).toString();
+
+    let lastPayload = null;
+
+    function fmt(x) {
+        if (x === null || x === undefined) return "-";
+        if (typeof x === "number") return Number.isFinite(x) ? x.toFixed(1) : String(x);
+        return String(x);
+    }
+
+    function latest(arr) {
+        if (!Array.isArray(arr) || arr.length === 0) return null;
+        return arr[arr.length - 1];
+    }
+
+    function renderCards(patients) {
+        cardsEl.innerHTML = "";
+        const beds = Object.keys(patients || {}).sort();
+        for (const bed of beds) {
+            const p = patients[bed] || {};
+            const hr = latest(p.hr);
+            const rr = latest(p.rr);
+            const sys = latest(p.sys);
+            const dia = latest(p.dia);
+            const temp = latest(p.temp);
+            const ts = latest(p.ts);
+
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `
+        <div class="title">
+          <span>${bed}</span>
+          <span class="muted">${ts ? new Date(ts).toLocaleTimeString() : ""}</span>
+        </div>
+        <table>
+          <tr><td class="k">HR</td><td>${fmt(hr)} bpm</td></tr>
+          <tr><td class="k">RR</td><td>${fmt(rr)} rpm</td></tr>
+          <tr><td class="k">BP</td><td>${fmt(sys)} / ${fmt(dia)} mmHg</td></tr>
+          <tr><td class="k">Temp</td><td>${fmt(temp)} °C</td></tr>
+        </table>
+      `;
+            cardsEl.appendChild(div);
+        }
+    }
+
+    function ensureBedOptions(patients) {
+        const beds = Object.keys(patients || {}).sort();
+        const current = bedSelect.value;
+        bedSelect.innerHTML = "";
+        for (const b of beds) {
+            const opt = document.createElement("option");
+            opt.value = b;
+            opt.textContent = b;
+            bedSelect.appendChild(opt);
+        }
+        if (beds.includes(current)) bedSelect.value = current;
+        else if (beds.length) bedSelect.value = beds[0];
+    }
+
+    function renderEcg(patients) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const bed = bedSelect.value;
+        if (!bed || !patients || !patients[bed]) return;
+
+        const p = patients[bed];
+        const ecg = Array.isArray(p.ecg) ? p.ecg : null;
+        if (!ecg || ecg.length < 2) return;
+
+        const n = Math.min(800, ecg.length);
+        const slice = ecg.slice(ecg.length - n);
+
+        let min = Infinity, max = -Infinity;
+        for (const v of slice) { if (v < min) min = v; if (v > max) max = v; }
+        if (!Number.isFinite(min) || !Number.isFinite(max) || min === max) { min -= 1; max += 1; }
+
+        const w = canvas.width, h = canvas.height;
+        ctx.beginPath();
+        for (let i = 0; i < slice.length; i++) {
+            const x = (i / (slice.length - 1)) * (w - 1);
+            const y = h - 1 - ((slice[i] - min) / (max - min)) * (h - 2);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+
+    async function fetchTelemetry() {
+        errorEl.textContent = "";
+        const t0 = performance.now();
+
+        const res = await fetch(TELEMETRY_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error(`GET ${TELEMETRY_URL} failed: ${res.status} ${res.statusText}`);
+
+        const data = await res.json();
+        const dt = Math.round(performance.now() - t0);
+        statusEl.textContent = `Last fetch: ${new Date().toLocaleTimeString()} (${dt} ms) — ${TELEMETRY_URL}`;
+
+        const patients = data.patients || data;
+        lastPayload = { patients };
+
+        ensureBedOptions(patients);
+        renderCards(patients);
+        renderEcg(patients);
+    }
+
+    document.getElementById("refreshBtn").addEventListener("click", () =>
+        fetchTelemetry().catch(e => errorEl.textContent = e.stack || e)
+    );
+    bedSelect.addEventListener("change", () => { if (lastPayload) renderEcg(lastPayload.patients); });
+
+    fetchTelemetry().catch(e => errorEl.textContent = e.stack || e);
+    setInterval(() => fetchTelemetry().catch(e => errorEl.textContent = e.stack || e), 1000);
+</script>
+</body>
+</html>
