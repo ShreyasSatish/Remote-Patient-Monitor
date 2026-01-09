@@ -3,10 +3,12 @@ package rpm.ui.dashboard;
 import javafx.scene.control.TextField;
 import rpm.domain.PatientId;
 import rpm.domain.VitalSnapshot;
+import rpm.domain.alarm.AlarmState;
 import rpm.simulation.PatientCard;
 import rpm.ui.app.AppContext;
 import rpm.ui.app.Router;
 import rpm.ui.layout.TopBanner;
+import rpm.domain.alarm.AlarmEngine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +50,7 @@ public final class DashboardController {
         int perScreen = ctx.settings.getPatientsPerScreen();
         int maxPage = Math.max(0, (ids.size() - 1) / perScreen);
         if (pageIndex > maxPage) pageIndex = maxPage;
+
     }
 
     public void renderPage() {
@@ -68,6 +71,7 @@ public final class DashboardController {
         return (int) Math.ceil(ids.size() / (double) perScreen);
     }
 
+    /**
     private PatientTileModel buildTile(PatientId id) {
         VitalSnapshot snap = ctx.ward.getPatientLatestSnapshot(id);
         PatientCard card = ctx.ward.getPatientCard(id);
@@ -78,10 +82,31 @@ public final class DashboardController {
 
         // Alarm state (if you’ve got AlarmEngine state per patient)
         // If your AlarmEngine has getState(PatientId), use it:
-        // AlarmState alarmState = ctx.alarmsEngine.getState(id);
+        // AlarmState s = ctx.alarms.getState(id);
+        //boolean alerting = AlertRules.isAlertingRedOnly(s);
+        //cardView.setAlerting(alerting);
+
         // For now we’ll leave it null, and the tile can stay normal:
         return PatientTileModel.from(id, name, snap);
     }
+
+    **/
+
+    private PatientTileModel buildTile(PatientId id) {
+        VitalSnapshot snap = ctx.ward.getPatientLatestSnapshot(id);
+        PatientCard card = ctx.ward.getPatientCard(id);
+
+        String name = (card != null && card.getLabel() != null && !card.getLabel().isEmpty())
+                ? card.getLabel()
+                : "Patient";
+
+        AlarmState s = ctx.alarms.getState(id);
+        boolean alerting = rpm.ui.alerts.AlertRules.isAlertingRedOnly(s);
+
+        return PatientTileModel.from(id, name, snap, alerting);
+    }
+
+
 
     private PatientId findPatient(String q) {
         // try bed number

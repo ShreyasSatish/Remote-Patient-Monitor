@@ -21,6 +21,25 @@ public final class RpmApp extends Application {
         AlarmEngine alarmEngine = new AlarmEngine(AlarmConfig.defaultAdult());
         AlarmService alarmService = new AlarmService(alarmEngine);
         ward.addListener(alarmService);
+        alarmService.addListener(new ConsoleAlarmListener());
+        /**
+        alarmService.addListener(new AlarmListener() {
+            @Override public void onAlarmTransition(AlarmTransition t) {
+                System.out.println("TRANSITION: " + t.getTime() + " " + t.getVitalType() + " " + t.getFrom() + "->" + t.getTo());
+            }
+            @Override public void onAlarmState(PatientId id, java.time.Instant time, AlarmState state) {
+                // Comment out if too spammy
+                // System.out.println(id.getDisplayName() + " overall=" + state.getOverall());
+            }
+        });
+         **/
+
+        alarmService.addListener(new AlarmListener() {
+            @Override public void onAlarmTransition(AlarmTransition t) {
+                java.awt.Toolkit.getDefaultToolkit().beep();
+            }
+            @Override public void onAlarmState(rpm.domain.PatientId id, java.time.Instant time, AlarmState state) {}
+        });
 
         // in memory history for demo/reporting
         InMemoryPatientDataStore store = new InMemoryPatientDataStore(Duration.ofMinutes(10));
