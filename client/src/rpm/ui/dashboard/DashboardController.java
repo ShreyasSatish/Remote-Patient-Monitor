@@ -41,7 +41,19 @@ public final class DashboardController {
         });
 
         grid.setOnPatientClicked(router::showPatientDetail);
-        grid.setOnNextPage(() -> { pageIndex++; renderPage(); });
+        grid.setOnNextPage(() -> {
+            int perScreen = ctx.settings.getPatientsPerScreen();
+            int maxPage = pageCount(perScreen) - 1;
+
+            if (pageIndex >= maxPage) {
+                pageIndex = 0;          // wrap back to first page
+            } else {
+                pageIndex++;
+            }
+
+            renderPage();
+        });
+
         grid.setOnPrevPage(() -> { pageIndex = Math.max(0, pageIndex - 1); renderPage(); });
     }
 
