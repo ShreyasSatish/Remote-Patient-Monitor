@@ -19,19 +19,20 @@ tasks.register("buildAll") {
             ":client:build",
             "servlet:build"
     )
-application {
-    mainClass = 'rpm.ui.app.RpmApp'
-}
+    application {
+        mainClass = 'rpm.ui.app.RpmApp'
+    }
 
-sourceSets {
-    main {
-        java {
-            srcDirs = ['src']
+    sourceSets {
+        main {
+            java {
+                srcDirs = ['src']
+            }
         }
     }
-}
 
-javafx {
-    version = "17.0.10"
-    modules = [ 'javafx.controls' ]
+    javafx {
+        version = "17.0.10"
+        modules = ['javafx.controls']
+    }
 }
