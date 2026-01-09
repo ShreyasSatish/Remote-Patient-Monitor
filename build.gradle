@@ -4,8 +4,10 @@ plugins {
     id 'org.openjfx.javafxplugin' version '0.0.14'
 }
 
-repositories {
-    mavenCentral()
+allprojects {
+    repositories {
+        mavenCentral()
+    }
 }
 
 java {
