@@ -23,8 +23,8 @@ public class TelemetryPublisher {
 
     // ECG is simulated at 250 Hz, we downsample to 125 Hz ( it is a factor 4)
     private final int rawFsHz = 250;
-    private final int targetFsHz = 50;
-    private final int downsampleFactor = 5;
+    private final int targetFsHz = 125;
+    private final int downsampleFactor = 2;
 
     // Send ECG in 1-second chunks @ 125 Hz
     private final int chunkSamples = 125;

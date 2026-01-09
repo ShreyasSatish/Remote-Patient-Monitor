@@ -64,7 +64,6 @@
         return arr[arr.length - 1];
     }
 
-    // each patient square with all of their vital signs
     function renderCards(patients) {
         cardsEl.innerHTML = "";
         const beds = Object.keys(patients || {}).sort();
@@ -95,7 +94,6 @@
         }
     }
 
-    // see the bed that you have selected
     function ensureBedOptions(patients) {
         const beds = Object.keys(patients || {}).sort();
         const current = bedSelect.value;
@@ -110,7 +108,6 @@
         else if (beds.length) bedSelect.value = beds[0];
     }
 
-    // ECG display function (show the ECG kinda continuously)
     function renderEcg(patients) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -139,7 +136,6 @@
         ctx.stroke();
     }
 
-    // gets the most recent data from the telemetry and shows the time stamp
     async function fetchTelemetry() {
         errorEl.textContent = "";
         const t0 = performance.now();
@@ -158,8 +154,7 @@
         renderCards(patients);
         renderEcg(patients);
     }
-
-    // a listener that will refresh once the refresh button is clicked
+    
     document.getElementById("refreshBtn").addEventListener("click", () =>
         fetchTelemetry().catch(e => errorEl.textContent = e.stack || e)
     );
