@@ -21,7 +21,13 @@ public final class VitalSnapshotPanel extends VBox {
     public VitalSnapshotPanel() {
         setSpacing(8);
         setPadding(new Insets(12));
-        setStyle("-fx-border-color: #cccccc; -fx-border-radius: 10; -fx-background-radius: 10;");
+        setStyle(
+                "-fx-border-color: #cccccc;" +
+                        "-fx-border-radius: 10;" +
+                        "-fx-background-radius: 10;" +
+                        "-fx-background-color: white;"
+        );
+
 
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
 

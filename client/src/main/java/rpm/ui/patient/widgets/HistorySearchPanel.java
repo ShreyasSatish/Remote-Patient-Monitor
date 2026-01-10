@@ -2,6 +2,7 @@ package rpm.ui.patient.widgets;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import rpm.domain.PatientId;
 import rpm.domain.VitalSnapshot;
@@ -16,6 +17,9 @@ import java.util.Map;
 
 public final class HistorySearchPanel extends VBox {
 
+    // ----------------------------
+    // ORIGINAL FIELDS (UNCHANGED)
+    // ----------------------------
     private final DatePicker datePicker = new DatePicker(LocalDate.now());
     private final Spinner<Integer> hour = new Spinner<>(0, 23, LocalTime.now().getHour());
     private final Spinner<Integer> minute = new Spinner<>(0, 59, LocalTime.now().getMinute());
@@ -24,34 +28,72 @@ public final class HistorySearchPanel extends VBox {
     private final Label result = new Label("History result: (none)");
 
     public HistorySearchPanel(AppContext ctx, PatientId patientId) {
+
         setSpacing(8);
         setPadding(new Insets(12));
-        setStyle("-fx-border-color: #cccccc; -fx-border-radius: 10; -fx-background-radius: 10;");
+
+        // ------------------------------------------------
+        // ✅ WHITE CARD STYLE (ADDED)
+        // ------------------------------------------------
+        setStyle(
+                "-fx-border-color: #cccccc;" +
+                        "-fx-border-radius: 10;" +
+                        "-fx-background-radius: 10;" +
+                        "-fx-background-color: white;"
+        );
+
+        // ------------------------------------------------
+        // ✅ AUTO SIZE (ADDED)
+        // ------------------------------------------------
+        setMinHeight(Region.USE_COMPUTED_SIZE);
+        setPrefHeight(Region.USE_COMPUTED_SIZE);
+        setMaxHeight(Region.USE_COMPUTED_SIZE);
+
+        // ------------------------------------------------
+        // ✅ RESULT LABEL AUTO RESIZE (ADDED)
+        // ------------------------------------------------
+        result.setWrapText(true);
+        result.setMaxWidth(Double.MAX_VALUE);
 
         Button fetch = new Button("Fetch snapshot");
         fetch.setOnAction(e -> {
+
+            // ----------------------------
+            // ORIGINAL LOGIC (UNCHANGED)
+            // ----------------------------
             Instant target = toInstant();
-            // For demo: find nearest snapshot from the in-memory store (within retention)
             Instant from = target.minusSeconds(120);
             Instant to = target.plusSeconds(120);
             List<VitalSnapshot> snaps = ctx.store.getVitals(patientId, from, to);
 
             VitalSnapshot nearest = snaps.stream()
-                    .min(Comparator.comparingLong(s -> Math.abs(s.getTimestamp().toEpochMilli() - target.toEpochMilli())))
+                    .min(Comparator.comparingLong(
+                            s -> Math.abs(
+                                    s.getTimestamp().toEpochMilli() -
+                                            target.toEpochMilli()
+                            )
+                    ))
                     .orElse(null);
 
             if (nearest == null) {
                 result.setText("History result: no data in memory window.");
-            } else {
+            }
+            else {
                 Map<VitalType, Double> v = nearest.getValues();
                 result.setText(
                         "At ~" + nearest.getTimestamp() +
                                 " | HR " + VitalDisplay.fmt1(get(v, VitalType.HEART_RATE)) +
                                 " | RR " + VitalDisplay.fmt1(get(v, VitalType.RESP_RATE)) +
-                                " | BP " + VitalDisplay.fmt0(get(v, VitalType.BP_SYSTOLIC)) + "/" + VitalDisplay.fmt0(get(v, VitalType.BP_DIASTOLIC)) +
+                                " | BP " + VitalDisplay.fmt0(get(v, VitalType.BP_SYSTOLIC)) +
+                                "/" + VitalDisplay.fmt0(get(v, VitalType.BP_DIASTOLIC)) +
                                 " | Temp " + VitalDisplay.fmt1(get(v, VitalType.TEMPERATURE))
                 );
             }
+
+            // ------------------------------------------------
+            // ✅ FORCE PANEL TO RESIZE AFTER TEXT CHANGE (ADDED)
+            // ------------------------------------------------
+            requestLayout();
         });
 
         getChildren().addAll(
@@ -64,10 +106,12 @@ public final class HistorySearchPanel extends VBox {
         );
     }
 
+    // ----------------------------
+    // ORIGINAL METHOD (UNCHANGED)
+    // ----------------------------
     private Instant toInstant() {
         LocalDate d = datePicker.getValue();
         LocalTime t = LocalTime.of(hour.getValue(), minute.getValue(), second.getValue());
-        // Use system default timezone for demo
         return ZonedDateTime.of(d, t, ZoneId.systemDefault()).toInstant();
     }
 

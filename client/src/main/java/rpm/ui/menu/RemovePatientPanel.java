@@ -17,7 +17,13 @@ public final class RemovePatientPanel extends VBox {
     public RemovePatientPanel(AppContext ctx) {
         setSpacing(8);
         setPadding(new Insets(12));
-        setStyle("-fx-border-color: #cccccc; -fx-border-radius: 10; -fx-background-radius: 10;");
+        setStyle(
+                "-fx-border-color: #cccccc;" +
+                        "-fx-border-radius: 10;" +
+                        "-fx-background-radius: 10;" +
+                        "-fx-background-color: white;"
+        );
+
 
         Label title = new Label("Remove patient");
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");

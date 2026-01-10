@@ -13,7 +13,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import rpm.domain.PatientId;
 
-
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -25,6 +24,7 @@ public final class PatientGridView extends BorderPane {
     private final ScrollPane scroll = new ScrollPane();
 
     private Consumer<PatientId> onPatientClicked = id -> {};
+    private Consumer<PatientId> onResolve = id -> {};
     private Runnable onNextPage = () -> {};
     private Runnable onPrevPage = () -> {};
 
@@ -34,10 +34,14 @@ public final class PatientGridView extends BorderPane {
 
     public PatientGridView() {
 
+        // Blue background behind the grid area
+        setStyle("-fx-background-color: #A0C1D1;");
+
         grid.setPadding(new Insets(16));
         grid.setHgap(16);
         grid.setVgap(16);
         grid.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        grid.setStyle("-fx-background-color: transparent;");
 
         scroll.setContent(grid);
         scroll.setFitToWidth(true);
@@ -45,15 +49,19 @@ public final class PatientGridView extends BorderPane {
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
+        // ✅ Use CSS (reliable) to kill viewport white background
+        scroll.getStyleClass().add("dashboard-scroll");
+        scroll.setPannable(false);
+
         setCenter(scroll);
 
-        // Paging controls
         prevBtn.setOnAction(e -> onPrevPage.run());
         nextBtn.setOnAction(e -> onNextPage.run());
 
         HBox footer = new HBox(12, prevBtn, pageLabel, nextBtn);
         footer.setAlignment(Pos.CENTER);
         footer.setPadding(new Insets(10));
+        footer.setStyle("-fx-background-color: #A0C1D1;");
 
         setBottom(footer);
     }
@@ -62,8 +70,9 @@ public final class PatientGridView extends BorderPane {
         this.onPatientClicked = handler != null ? handler : (id -> {});
     }
 
-    private Consumer<PatientId> onResolve = id -> {};
-    public void setOnResolve(Consumer<PatientId> c) { this.onResolve = (c != null) ? c : id -> {}; }
+    public void setOnResolve(Consumer<PatientId> handler) {
+        this.onResolve = handler != null ? handler : (id -> {});
+    }
 
     public void setOnNextPage(Runnable r) {
         this.onNextPage = r != null ? r : (() -> {});
@@ -73,19 +82,18 @@ public final class PatientGridView extends BorderPane {
         this.onPrevPage = r != null ? r : (() -> {});
     }
 
-    // Used by auto-rotation
     public void fireNextPage() {
         onNextPage.run();
     }
 
-    public void setTiles(List<PatientTileModel> tiles, int pageIndex, int pageCount, boolean showResolve) {
+    public void setTiles(List<PatientTileModel> tiles,
+                         int pageIndex,
+                         int pageCount,
+                         boolean showResolve) {
+
         grid.getChildren().clear();
         grid.getColumnConstraints().clear();
         grid.getRowConstraints().clear();
-
-        // PatientCardView card = new PatientCardView();
-        // card.setModel(t); // t already contains showResolve
-
 
         int count = (tiles == null) ? 0 : tiles.size();
         if (count <= 0) count = 1;
@@ -96,7 +104,6 @@ public final class PatientGridView extends BorderPane {
         double colPercent = 100.0 / columns;
         double rowPercent = 100.0 / rows;
 
-        // Build columns
         for (int i = 0; i < columns; i++) {
             ColumnConstraints col = new ColumnConstraints();
             col.setPercentWidth(colPercent);
@@ -105,7 +112,6 @@ public final class PatientGridView extends BorderPane {
             grid.getColumnConstraints().add(col);
         }
 
-        // Build rows
         for (int i = 0; i < rows; i++) {
             RowConstraints row = new RowConstraints();
             row.setPercentHeight(rowPercent);
@@ -116,11 +122,12 @@ public final class PatientGridView extends BorderPane {
 
         if (tiles != null) {
             int c = 0, r = 0;
-            for (PatientTileModel t : tiles) {
-                PatientCardView card = new PatientCardView();
 
-                // IMPORTANT: use the 2-arg setModel if you updated it
-                card.setModel(t, showResolve);
+            for (PatientTileModel t : tiles) {
+                PatientCardView card = new PatientCardView(t);
+                card.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                GridPane.setHgrow(card, Priority.ALWAYS);
+                GridPane.setVgrow(card, Priority.ALWAYS);
 
                 card.setOnMouseClicked(e -> onPatientClicked.accept(t.id));
                 card.setOnResolve(() -> onResolve.accept(t.id));
@@ -141,8 +148,4 @@ public final class PatientGridView extends BorderPane {
 
         scroll.setVvalue(0);
     }
-
-
 }
-
-

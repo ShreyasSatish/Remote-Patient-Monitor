@@ -14,7 +14,13 @@ public final class AlertSettingsPanel extends VBox {
     public AlertSettingsPanel(AppContext ctx) {
         setSpacing(8);
         setPadding(new Insets(12));
-        setStyle("-fx-border-color: #cccccc; -fx-border-radius: 10; -fx-background-radius: 10;");
+        setStyle(
+                "-fx-border-color: #cccccc;" +
+                        "-fx-border-radius: 10;" +
+                        "-fx-background-radius: 10;" +
+                        "-fx-background-color: white;"
+        );
+
 
         Label title = new Label("Alert");
         title.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");

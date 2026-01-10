@@ -30,6 +30,13 @@ public final class AppShell extends BorderPane {
 
         overlayController = new AlertOverlayController(ctx, overlayView);
 
+        // =====================================================
+        // ✅ FORCE BLUE BACKGROUND FOR ENTIRE APP CONTENT AREA
+        // =====================================================
+        contentPane.setStyle("-fx-background-color: #A0C1D1;");
+        stack.setStyle("-fx-background-color: #A0C1D1;");
+        setStyle("-fx-background-color: #A0C1D1;");
+
         stack.getChildren().addAll(contentPane, overlayView);
         setCenter(stack);
 
@@ -53,7 +60,7 @@ public final class AppShell extends BorderPane {
     public void setAlertsEnabled(boolean enabled) {
         this.alertsEnabled = enabled;
         if (!enabled) {
-            overlayController.forceStop(); // we'll add this next
+            overlayController.forceStop();
         }
     }
 }
