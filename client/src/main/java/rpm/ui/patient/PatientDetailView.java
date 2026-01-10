@@ -44,8 +44,13 @@ public final class PatientDetailView extends BorderPane {
         ecgPanel.reset();
         historyPanel = new HistorySearchPanel(ctx, patientId);
 
-        Button reportBtn = new Button("Generate report (last 1 min)");
-        reportBtn.setOnAction(e -> generateLastMinuteReport());
+        Button reportBtn = new Button("Generate Report (External Website)");
+        reportBtn.setOnAction(e -> {
+            try {
+                java.awt.Desktop.getDesktop().browse(new java.net.URI("https://bioeng-rancho-app.impaas.uk/"));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+        }});
 
         VBox left = new VBox(12, snapshotPanel, reportBtn, historyPanel);
         left.setPadding(new Insets(15));
@@ -76,19 +81,5 @@ public final class PatientDetailView extends BorderPane {
 
         double[] seg = ctx.ward.getPatientLastEcgSegment(patientId);
         ecgPanel.append(seg);
-    }
-
-    private void generateLastMinuteReport() {
-        Instant to = Instant.now(); // for now; could use simTime later if you centralize it
-        Instant from = to.minusSeconds(60);
-
-        PatientReport r = ctx.reports.generate(patientId, from, to, ctx.store);
-
-        System.out.println("==== REPORT " + patientId.getDisplayName() + " ====");
-        for (Map.Entry<rpm.domain.VitalType, VitalSummary> e : r.getSummaries().entrySet()) {
-            VitalSummary vs = e.getValue();
-            System.out.printf("%s: n=%d mean=%.2f min=%.2f max=%.2f%n",
-                    e.getKey(), vs.getN(), vs.getMean(), vs.getMin(), vs.getMax());
-        }
     }
 }
