@@ -31,7 +31,7 @@ public final class TopBanner extends HBox {
         Button menuBtn = new Button("Menu");
         menuBtn.setOnAction(e -> router.showMenu());
 
-        Button settingsBtn = new Button("⚙");
+        Button settingsBtn = new Button("⏻");
         settingsBtn.setOnAction(e -> SettingsPopup.show(settingsBtn, ctx, router));
 
         getChildren().addAll(logoBtn, userLabel, searchField, menuBtn, settingsBtn);
