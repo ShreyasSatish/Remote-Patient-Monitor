@@ -11,6 +11,12 @@
 !**/src/test/**/build/
 .kotlin
 
+out/
+**/out/
+build/
+.gradle/
+
+
 # Compiled class file
 *.class
 

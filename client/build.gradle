@@ -14,6 +14,7 @@ application {
     mainClass = 'rpm.ui.app.RpmApp'
 }
 
+/**
 sourceSets {
     main {
         java {
@@ -21,6 +22,7 @@ sourceSets {
         }
     }
 }
+ **/
 
 javafx {
     version = "17.0.10"
