@@ -13,9 +13,9 @@ public final class AudioAlertManager {
     public AudioAlertManager(UISettings settings) {
         this.settings = settings;
 
-        java.net.URL url = AudioAlertManager.class.getResource("/rpm/ui/assets/alert.wav");
+        java.net.URL url = AudioAlertManager.class.getResource("/rpm/ui/assets/alert2.wav");
         if (url == null) {
-            System.err.println("[WARN] alert.wav not found at /rpm/ui/assets/alert.wav. Audio disabled.");
+            System.err.println("[WARN] alert.wav not found at /rpm/ui/assets/alert2.wav. Audio disabled.");
             this.clip = null;
             return;
         }

@@ -3,7 +3,6 @@ package rpm.simulation;
 import rpm.domain.PatientId;
 import rpm.domain.VitalSnapshot;
 import rpm.domain.VitalType;
-import rpm.simulation.ChronicCondition;
 
 
 import java.time.Instant;

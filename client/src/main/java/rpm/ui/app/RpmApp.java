@@ -17,36 +17,12 @@ public final class RpmApp extends Application {
         stage.setMinWidth(800);
         stage.setMinHeight(600);
 
-        // core services (already exist)
         WardManager ward = new WardManager(8);
 
         AlarmEngine alarmEngine = new AlarmEngine(AlarmConfig.defaultAdult());
         AlarmService alarmService = new AlarmService(alarmEngine);
         ward.addListener(alarmService);
         alarmService.addListener(new ConsoleAlarmListener());
-
-        // for testing
-        System.out.println("audio url = " + RpmApp.class.getResource("/rpm/ui/assets/alert.wav"));
-
-
-        /**
-        alarmService.addListener(new AlarmListener() {
-            @Override public void onAlarmTransition(AlarmTransition t) {
-                System.out.println("TRANSITION: " + t.getTime() + " " + t.getVitalType() + " " + t.getFrom() + "->" + t.getTo());
-            }
-            @Override public void onAlarmState(PatientId id, java.time.Instant time, AlarmState state) {
-                // Comment out if too spammy
-                // System.out.println(id.getDisplayName() + " overall=" + state.getOverall());
-            }
-        });
-         **/
-
-        alarmService.addListener(new AlarmListener() {
-            @Override public void onAlarmTransition(AlarmTransition t) {
-                java.awt.Toolkit.getDefaultToolkit().beep();
-            }
-            @Override public void onAlarmState(rpm.domain.PatientId id, java.time.Instant time, AlarmState state) {}
-        });
 
         // in memory history for demo/reporting
         InMemoryPatientDataStore store = new InMemoryPatientDataStore(Duration.ofMinutes(10));
@@ -56,11 +32,9 @@ public final class RpmApp extends Application {
         // Report generator
         ReportGenerator reportGenerator = new ReportGenerator();
 
-        // UI state
         Session session = new Session();
         UISettings settings = new UISettings();
 
-        // simulation clock
         SimulationClock clock = new SimulationClock(ward);
         clock.start();
 
@@ -68,8 +42,6 @@ public final class RpmApp extends Application {
         Router router = new Router(stage, ctx);
         router.showLogin();
         stage.show();
-
-
     }
 
     public static void main(String[] args) {

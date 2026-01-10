@@ -28,7 +28,7 @@ public final class UISettings {
         rotationEnabled = false;
         rotationSeconds = 10;
         alertPreference = AlertPreference.VISUAL_ONLY;
-        alertDuration = AlertDuration.UNTIL_RESOLVED;
+        alertDuration = AlertDuration.SEC_10;
     }
 
     private static int clamp(int v, int lo, int hi) {

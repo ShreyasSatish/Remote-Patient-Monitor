@@ -1,56 +1,76 @@
 package rpm.ui.app;
 
-import javafx.scene.Parent;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.geometry.Pos;
 import rpm.domain.PatientId;
 import rpm.ui.authentication.LoginView;
 import rpm.ui.dashboard.DashboardView;
+import rpm.ui.layout.AppShell;
 import rpm.ui.menu.MenuView;
 import rpm.ui.patient.PatientDetailView;
-import rpm.ui.alerts.AlertModeView;
+import rpm.ui.app.NurseUser;
 
 public final class Router {
     private final Stage stage;
     private final AppContext ctx;
+    private final AppShell shell;
 
     public Router(Stage stage, AppContext ctx) {
         this.stage = stage;
         this.ctx = ctx;
+        this.shell = new AppShell(ctx, this);
+
+        stage.setScene(new Scene(shell, 1100, 750));
     }
 
-    // The below code was made using the help of generative AI
-    private void setView(Parent view) {
-        if (stage.getScene() == null) {
-            stage.setScene(new Scene(view, 1100, 750));
-        } else {
-            stage.getScene().setRoot(view);
-        }
+    private void setContent(Node content) {
+        shell.setContent(content);
     }
-    // End of code made with generative AI
 
     public void showLogin() {
-        LoginView view = new LoginView(ctx, this);
         stage.setTitle("RPM - Login");
-        setView(view);
+        shell.setTop(null);
+        shell.setAlertsEnabled(false);
+
+        LoginView card = new LoginView(ctx, this);
+
+        StackPane bg = new StackPane(card);
+        bg.setStyle("-fx-background-color: #A0C1D1;"); // same as your old blue
+        StackPane.setAlignment(card, Pos.CENTER);
+
+        setContent(bg);
     }
 
+
     public void showDashboard() {
-        DashboardView view = new DashboardView(ctx, this);
         stage.setTitle("RPM - Dashboard");
-        setView(view);
+        shell.setTop(shell.getBanner());
+        shell.setAlertsEnabled(true);
+        setContent(new DashboardView(ctx, this, shell.getBanner()));
+        if (ctx.session.isLoggedIn()) {
+            NurseUser u = ctx.session.getUser();
+            shell.getBanner().setUserText(u.getName() + " (" + u.getUsername() + ")");
+        } else {
+            shell.getBanner().setUserText("");
+        }
+
     }
 
     public void showPatientDetail(PatientId id) {
-        PatientDetailView view = new PatientDetailView(ctx, this, id);
         stage.setTitle("RPM - Patient " + id.getDisplayName());
-        setView(view);
+        shell.setTop(shell.getBanner());
+        shell.setAlertsEnabled(true);
+        setContent(new PatientDetailView(ctx, this, id));
     }
 
     public void showMenu() {
-        MenuView view = new MenuView(ctx, this);
         stage.setTitle("RPM - Menu");
-        setView(view);
+        shell.setTop(shell.getBanner());
+        shell.setAlertsEnabled(true);
+        setContent(new MenuView(ctx, this));
     }
 
     public void logout() {
@@ -58,20 +78,13 @@ public final class Router {
         showLogin();
     }
 
-    public void restartAppUiOnly() {
-        // “restart” meaning: reset UI state (NOT reboot PC)
-        ctx.settings.resetDefaults();
-        showDashboard();
-    }
-
     public void powerOffApp() {
         javafx.application.Platform.exit();
     }
 
-    public void showAlertMode() {
-        AlertModeView view = new AlertModeView(ctx, this);
-        stage.setTitle("RPM - Alerts");
-        setView(view);
+    public void restartAppUiOnly() {
+        ctx.settings.resetDefaults();
+        showDashboard();
     }
 
 }

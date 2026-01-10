@@ -5,7 +5,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -13,6 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.RowConstraints;
 import rpm.domain.PatientId;
+
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -62,6 +62,9 @@ public final class PatientGridView extends BorderPane {
         this.onPatientClicked = handler != null ? handler : (id -> {});
     }
 
+    private Consumer<PatientId> onResolve = id -> {};
+    public void setOnResolve(Consumer<PatientId> c) { this.onResolve = (c != null) ? c : id -> {}; }
+
     public void setOnNextPage(Runnable r) {
         this.onNextPage = r != null ? r : (() -> {});
     }
@@ -75,10 +78,14 @@ public final class PatientGridView extends BorderPane {
         onNextPage.run();
     }
 
-    public void setTiles(List<PatientTileModel> tiles, int pageIndex, int pageCount) {
+    public void setTiles(List<PatientTileModel> tiles, int pageIndex, int pageCount, boolean showResolve) {
         grid.getChildren().clear();
         grid.getColumnConstraints().clear();
         grid.getRowConstraints().clear();
+
+        // PatientCardView card = new PatientCardView();
+        // card.setModel(t); // t already contains showResolve
+
 
         int count = (tiles == null) ? 0 : tiles.size();
         if (count <= 0) count = 1;
@@ -90,41 +97,38 @@ public final class PatientGridView extends BorderPane {
         double rowPercent = 100.0 / rows;
 
         // Build columns
-        for (int c = 0; c < columns; c++) {
+        for (int i = 0; i < columns; i++) {
             ColumnConstraints col = new ColumnConstraints();
             col.setPercentWidth(colPercent);
             col.setFillWidth(true);
+            col.setHgrow(Priority.ALWAYS);
             grid.getColumnConstraints().add(col);
         }
 
         // Build rows
-        for (int r = 0; r < rows; r++) {
+        for (int i = 0; i < rows; i++) {
             RowConstraints row = new RowConstraints();
             row.setPercentHeight(rowPercent);
             row.setFillHeight(true);
+            row.setVgrow(Priority.ALWAYS);
             grid.getRowConstraints().add(row);
         }
 
         if (tiles != null) {
-            for (int i = 0; i < tiles.size(); i++) {
-                PatientTileModel t = tiles.get(i);
-                PatientCardView card = new PatientCardView(t);
+            int c = 0, r = 0;
+            for (PatientTileModel t : tiles) {
+                PatientCardView card = new PatientCardView();
 
-                // Fill grid cell completely
-                card.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-                GridPane.setHgrow(card, Priority.ALWAYS);
-                GridPane.setVgrow(card, Priority.ALWAYS);
+                // IMPORTANT: use the 2-arg setModel if you updated it
+                card.setModel(t, showResolve);
 
-                int col = i % columns;
-                int row = i / columns;
+                card.setOnMouseClicked(e -> onPatientClicked.accept(t.id));
+                card.setOnResolve(() -> onResolve.accept(t.id));
 
-                grid.add(card, col, row);
+                grid.add(card, c, r);
 
-                card.setOnMouseClicked(e -> {
-                    if (e.getButton() == MouseButton.PRIMARY) {
-                        onPatientClicked.accept(t.id);
-                    }
-                });
+                c++;
+                if (c >= columns) { c = 0; r++; }
             }
         }
 
@@ -137,4 +141,8 @@ public final class PatientGridView extends BorderPane {
 
         scroll.setVvalue(0);
     }
+
+
 }
+
+

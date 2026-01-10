@@ -39,7 +39,7 @@ public final class RemovePatientPanel extends VBox {
         });
 
         getChildren().addAll(title, selector, remove, refresh,
-                new Label("Note: Beds 01–08 cannot be removed (minimum patients rule)."));
+                new Label("Note: Beds 01–08 cannot be removed."));
     }
 
     private void refreshIds(AppContext ctx) {
