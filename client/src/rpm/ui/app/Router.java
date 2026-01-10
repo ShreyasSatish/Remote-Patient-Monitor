@@ -25,6 +25,8 @@ public final class Router {
     }
 
     public void showDashboard() {
+        stage.setTitle("RPM - Dashboard (DEBUG)");
+
         DashboardView view = new DashboardView(ctx, this);
         stage.setTitle("RPM - Dashboard");
         stage.setScene(new Scene(view, 1100, 750));

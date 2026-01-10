@@ -8,7 +8,6 @@ import rpm.simulation.PatientCard;
 import rpm.ui.app.AppContext;
 import rpm.ui.app.Router;
 import rpm.ui.layout.TopBanner;
-import rpm.domain.alarm.AlarmEngine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +19,16 @@ public final class DashboardController {
     private final Router router;
     private final PatientGridView grid;
     private final TopBanner banner;
+    private boolean overrideActive = false;
+    private List<PatientId> overrideIds = new ArrayList<>();
+    private int savedPageIndex = 0;
+    private long overrideEndsAtMs = 0; // epoch millis in sim time
+
+    private int rotationCounter = 0;
+
+    // audio
+    private final rpm.ui.alerts.AudioAlertManager audio;
+
 
     private List<PatientId> ids = new ArrayList<>();
     private int pageIndex = 0;
@@ -29,6 +38,8 @@ public final class DashboardController {
         this.router = router;
         this.grid = grid;
         this.banner = banner;
+        this.audio = new rpm.ui.alerts.AudioAlertManager(ctx.settings);
+
 
         // banner search behaviour for now: bed number search or "contains" label
         TextField search = banner.getSearchField();
@@ -38,6 +49,19 @@ public final class DashboardController {
 
             PatientId found = findPatient(q);
             if (found != null) router.showPatientDetail(found);
+        });
+
+        ctx.alarms.addListener(new rpm.domain.alarm.AlarmListener() {
+            @Override
+            public void onAlarmTransition(rpm.domain.alarm.AlarmTransition t) {
+                // Treat any transition TO non-green as "red-only alert"
+                if (t.getTo() != rpm.domain.alarm.AlarmLevel.GREEN) {
+                    javafx.application.Platform.runLater(() -> onAlertTriggered());
+                }
+            }
+
+            @Override
+            public void onAlarmState(PatientId id, java.time.Instant time, AlarmState state) {}
         });
 
         grid.setOnPatientClicked(router::showPatientDetail);
@@ -68,41 +92,32 @@ public final class DashboardController {
     public void renderPage() {
         int perScreen = ctx.settings.getPatientsPerScreen();
 
-        int from = pageIndex * perScreen;
-        int to = Math.min(ids.size(), from + perScreen);
+        List<PatientId> source = overrideActive ? overrideIds : ids;
 
-        List<PatientTileModel> tiles = ids.subList(from, to).stream()
+        int from, to;
+        if (overrideActive) {
+            from = 0;
+            to = Math.min(source.size(), perScreen); // show all alerting up to perScreen
+        } else {
+            from = pageIndex * perScreen;
+            to = Math.min(source.size(), from + perScreen);
+        }
+
+        List<PatientTileModel> tiles = source.subList(from, to).stream()
                 .map(this::buildTile)
                 .collect(Collectors.toList());
 
-        grid.setTiles(tiles, pageIndex, pageCount(perScreen));
+        grid.setTiles(tiles, overrideActive ? 0 : pageIndex, pageCount(perScreen));
     }
+
+
+
 
     private int pageCount(int perScreen) {
         if (ids.isEmpty()) return 1;
         return (int) Math.ceil(ids.size() / (double) perScreen);
     }
 
-    /**
-    private PatientTileModel buildTile(PatientId id) {
-        VitalSnapshot snap = ctx.ward.getPatientLatestSnapshot(id);
-        PatientCard card = ctx.ward.getPatientCard(id);
-
-        String name = (card != null && card.getLabel() != null && !card.getLabel().isEmpty())
-                ? card.getLabel()
-                : "Patient";
-
-        // Alarm state (if you’ve got AlarmEngine state per patient)
-        // If your AlarmEngine has getState(PatientId), use it:
-        // AlarmState s = ctx.alarms.getState(id);
-        //boolean alerting = AlertRules.isAlertingRedOnly(s);
-        //cardView.setAlerting(alerting);
-
-        // For now we’ll leave it null, and the tile can stay normal:
-        return PatientTileModel.from(id, name, snap);
-    }
-
-    **/
 
     private PatientTileModel buildTile(PatientId id) {
         VitalSnapshot snap = ctx.ward.getPatientLatestSnapshot(id);
@@ -113,10 +128,11 @@ public final class DashboardController {
                 : "Patient";
 
         AlarmState s = ctx.alarms.getState(id);
-        boolean alerting = rpm.ui.alerts.AlertRules.isAlertingRedOnly(s);
+        boolean alerting = (s != null && s.getOverall() != rpm.domain.alarm.AlarmLevel.GREEN);
 
         return PatientTileModel.from(id, name, snap, alerting);
     }
+
 
 
 
@@ -137,4 +153,85 @@ public final class DashboardController {
         }
         return null;
     }
+
+    private void onAlertTriggered() {
+        int perScreen = ctx.settings.getPatientsPerScreen();
+        int total = ctx.ward.getPatientCount();
+
+        // If everything fits on screen, don't override page—just let tiles turn red.
+        if (perScreen >= total) {
+            // still start audio for duration if enabled
+            audio.startFor(ctx.clock.getSimTime().toEpochMilli());
+            return;
+        }
+
+        // compute alerting patient ids
+        List<PatientId> alerting = ctx.ward.getPatientIds().stream()
+                .filter(this::isAlerting)
+                .collect(Collectors.toList());
+
+        if (alerting.isEmpty()) return;
+
+        // start audio
+        audio.startFor(ctx.clock.getSimTime().toEpochMilli());
+
+        // activate override
+        if (!overrideActive) savedPageIndex = pageIndex; // preserve current page once
+
+        overrideActive = true;
+        overrideIds = alerting;
+
+        // set when to end override
+        java.time.Duration d = ctx.settings.getAlertDuration().toDurationOrNull();
+        if (d == null) {
+            overrideEndsAtMs = Long.MAX_VALUE; // until resolved
+        } else {
+            overrideEndsAtMs = ctx.clock.getSimTime().toEpochMilli() + d.toMillis();
+        }
+    }
+
+    public void onUiTick() {
+        long now = ctx.clock.getSimTime().toEpochMilli();
+
+        // stop audio if time passed
+        audio.tick(now);
+
+        // end override if duration elapsed OR no alerts remain (unless UNTIL_RESOLVED)
+        if (overrideActive) {
+            boolean anyStillAlerting = overrideIds.stream().anyMatch(this::isAlerting);
+
+            boolean durationElapsed = now >= overrideEndsAtMs;
+            boolean untilResolved = (ctx.settings.getAlertDuration().toDurationOrNull() == null);
+
+            if ((!untilResolved && durationElapsed) || (untilResolved && !anyStillAlerting)) {
+                overrideActive = false;
+                overrideIds = new ArrayList<>();
+                pageIndex = savedPageIndex;
+                // also stop audio when resolved
+                if (untilResolved) audio.stop();
+            }
+        }
+
+        // rotation: only when enabled and NOT overriding
+        if (!overrideActive && ctx.settings.isRotationEnabled()) {
+            // simplest: just advance page every rotationSeconds using a counter
+            rotationCounter++;
+            if (rotationCounter >= ctx.settings.getRotationSeconds()) {
+                rotationCounter = 0;
+                pageIndex++;
+                int perScreen = ctx.settings.getPatientsPerScreen();
+                int maxPage = Math.max(0, (ids.size() - 1) / perScreen);
+                if (pageIndex > maxPage) pageIndex = 0;
+            }
+        }
+    }
+
+    private boolean isAlerting(PatientId id) {
+        AlarmState s = ctx.alarms.getState(id);
+        return rpm.ui.alerts.AlertRules.isAlertingRedOnly(s);
+        // or: return s != null && s.getOverall() != AlarmLevel.GREEN;
+    }
+
+
+
 }

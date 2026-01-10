@@ -94,6 +94,8 @@ public final class LoginView extends VBox {
         this.loginButton.setOnMouseExited(e -> this.loginButton.setStyle(
                 "-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 5;"
         ));
+
+        /**
         this.loginButton.setOnAction(e -> {
             if (validateLogin()) {
                 String user = usernameField.getText();
@@ -101,6 +103,25 @@ public final class LoginView extends VBox {
                 router.showDashboard();
             }
         });
+         **/
+
+        this.loginButton.setOnAction(e -> {
+            System.out.println("Login clicked");
+            if (validateLogin()) {
+                System.out.println("Login validated OK, navigating...");
+                try {
+                    String user = usernameField.getText();
+                    ctx.session.setUser(new NurseUser(user, "Nurse", "User", "ID123"));
+                    router.showDashboard();
+                    System.out.println("router.showDashboard() called");
+                } catch (Exception ex) {
+                    ex.printStackTrace(); // THIS will expose the real problem
+                }
+            } else {
+                System.out.println("Login failed");
+            }
+        });
+
 
         HBox buttonContainer = new HBox(10);
         buttonContainer.setAlignment(Pos.CENTER_LEFT);

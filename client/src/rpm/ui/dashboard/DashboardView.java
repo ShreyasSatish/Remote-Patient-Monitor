@@ -34,11 +34,15 @@ public final class DashboardView extends BorderPane {
         controller.refreshPatients();
         controller.renderPage();
 
-        // UI refresh every 1 second (matches vitals snapshot frequency)
+
         uiTick = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+            controller.onUiTick();
             controller.refreshPatients();
             controller.renderPage();
         }));
+
+        // UI refresh every 1 second (matches vitals snapshot frequency)
+
         uiTick.setCycleCount(Timeline.INDEFINITE);
         uiTick.play();
 

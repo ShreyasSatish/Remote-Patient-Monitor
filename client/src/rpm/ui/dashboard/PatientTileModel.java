@@ -3,6 +3,8 @@ package rpm.ui.dashboard;
 import rpm.domain.PatientId;
 import rpm.domain.VitalSnapshot;
 import rpm.domain.VitalType;
+import rpm.domain.alarm.AlarmState;
+import rpm.simulation.PatientCard;
 
 import java.util.Map;
 
@@ -57,4 +59,6 @@ public final class PatientTileModel {
         Double x = m.get(t);
         return x == null ? Double.NaN : x;
     }
+
+
 }

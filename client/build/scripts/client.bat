@@ -70,7 +70,7 @@ goto fail
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\lib\client.jar;%APP_HOME%\lib\javafx-controls-17.0.10-mac-aarch64.jar;%APP_HOME%\lib\javafx-graphics-17.0.10-mac-aarch64.jar;%APP_HOME%\lib\javafx-graphics-17.0.10.jar;%APP_HOME%\lib\javafx-base-17.0.10-mac-aarch64.jar;%APP_HOME%\lib\javafx-base-17.0.10.jar;%APP_HOME%\lib\jackson-annotations-2.15.3.jar;%APP_HOME%\lib\jackson-core-2.15.3.jar;%APP_HOME%\lib\jackson-databind-2.15.3.jar
+set CLASSPATH=%APP_HOME%\lib\client.jar;%APP_HOME%\lib\javafx-controls-17.0.10-mac-aarch64.jar;%APP_HOME%\lib\javafx-media-17.0.10-mac-aarch64.jar;%APP_HOME%\lib\javafx-graphics-17.0.10-mac-aarch64.jar;%APP_HOME%\lib\javafx-graphics-17.0.10.jar;%APP_HOME%\lib\javafx-base-17.0.10-mac-aarch64.jar;%APP_HOME%\lib\javafx-base-17.0.10.jar;%APP_HOME%\lib\jackson-annotations-2.15.3.jar;%APP_HOME%\lib\jackson-core-2.15.3.jar;%APP_HOME%\lib\jackson-databind-2.15.3.jar
 
 
 @rem Execute client
