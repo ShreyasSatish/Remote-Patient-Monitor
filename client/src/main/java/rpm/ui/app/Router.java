@@ -1,5 +1,6 @@
 package rpm.ui.app;
 
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import rpm.domain.PatientId;
@@ -18,28 +19,38 @@ public final class Router {
         this.ctx = ctx;
     }
 
+    // The below code was made using the help of generative AI
+    private void setView(Parent view) {
+        if (stage.getScene() == null) {
+            stage.setScene(new Scene(view, 1100, 750));
+        } else {
+            stage.getScene().setRoot(view);
+        }
+    }
+    // End of code made with generative AI
+
     public void showLogin() {
         LoginView view = new LoginView(ctx, this);
         stage.setTitle("RPM - Login");
-        stage.setScene(new Scene(view, 1100, 750));
+        setView(view);
     }
 
     public void showDashboard() {
         DashboardView view = new DashboardView(ctx, this);
         stage.setTitle("RPM - Dashboard");
-        stage.setScene(new Scene(view, 1100, 750));
+        setView(view);
     }
 
     public void showPatientDetail(PatientId id) {
         PatientDetailView view = new PatientDetailView(ctx, this, id);
         stage.setTitle("RPM - Patient " + id.getDisplayName());
-        stage.setScene(new Scene(view, 1100, 750));
+        setView(view);
     }
 
     public void showMenu() {
         MenuView view = new MenuView(ctx, this);
         stage.setTitle("RPM - Menu");
-        stage.setScene(new Scene(view, 1100, 750));
+        setView(view);
     }
 
     public void logout() {
@@ -60,7 +71,7 @@ public final class Router {
     public void showAlertMode() {
         AlertModeView view = new AlertModeView(ctx, this);
         stage.setTitle("RPM - Alerts");
-        stage.setScene(new javafx.scene.Scene(view, 1100, 750));
+        setView(view);
     }
 
 }
