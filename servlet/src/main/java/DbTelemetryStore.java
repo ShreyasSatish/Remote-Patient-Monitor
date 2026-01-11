@@ -9,16 +9,28 @@ public class DbTelemetryStore extends AbstractTelemetryStore {
 
     private final DbConfig cfg;
 
+    static {
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException e) {
+            Logger.getLogger(DbTelemetryStore.class.getName())
+                    .warning("PostgreSQL JDBC driver not found on classpath (org.postgresql.Driver).");
+        }
+    }
+
     public DbTelemetryStore(DbConfig cfg) {
         this.cfg = cfg;
         try (Connection c = open()) {
             Sql.initSchema(c);
+            log.info("DB schema init OK");
         } catch (SQLException e) {
             throw new RuntimeException("DB schema init failed", e);
         }
     }
 
     private Connection open() throws SQLException {
+        DriverManager.setLoginTimeout(5);
+
         if (cfg.user == null || cfg.user.isBlank()) {
             return DriverManager.getConnection(cfg.url);
         }
@@ -28,16 +40,13 @@ public class DbTelemetryStore extends AbstractTelemetryStore {
     @Override
     public void store(String bedId, PatientTelemetry data) {
         if (bedId == null || bedId.isBlank() || data == null) return;
-
         long now = System.currentTimeMillis();
 
         try (Connection c = open()) {
             c.setAutoCommit(false);
             ensurePatient(c, bedId);
-
             insertVitals(c, bedId, data, now);
             insertEcg(c, bedId, data, now);
-
             c.commit();
         } catch (SQLException e) {
             log.log(Level.WARNING, "DB store failed for " + bedId, e);
@@ -63,16 +72,13 @@ public class DbTelemetryStore extends AbstractTelemetryStore {
         )) {
             for (int i = 0; i < n; i++) {
                 long t = getOr(ts, i, now);
-
                 ps.setString(1, bedId);
                 ps.setLong(2, t);
-
                 setNullableDouble(ps, 3, getOr(data.getHr(), i, null));
                 setNullableDouble(ps, 4, getOr(data.getRr(), i, null));
                 setNullableDouble(ps, 5, getOr(data.getSys(), i, null));
                 setNullableDouble(ps, 6, getOr(data.getDia(), i, null));
                 setNullableDouble(ps, 7, getOr(data.getTemp(), i, null));
-
                 ps.addBatch();
             }
             ps.executeBatch();
@@ -80,19 +86,20 @@ public class DbTelemetryStore extends AbstractTelemetryStore {
     }
 
     private void insertEcg(Connection c, String bedId, PatientTelemetry data, long now) throws SQLException {
-        List<Double> ecg = data.getEcg();
-        if (ecg == null || ecg.isEmpty()) return;
+        if (data.getEcg() == null || data.getEcg().isEmpty()) return;
 
-        long start = data.getEcgTsStart() != null ? data.getEcgTsStart() : now;
-        int fs = data.getEcgFs() != null ? data.getEcgFs() : 125;
+        Long startMs = data.getEcgTsStart();
+        Integer fs = data.getEcgFs();
+        if (startMs == null) startMs = now;
+        if (fs == null) fs = 250;
 
-        String samples = joinDoubles(ecg);
+        String samples = joinDoubles(data.getEcg());
 
         try (PreparedStatement ps = c.prepareStatement(
                 "INSERT INTO ecg_segments(bed_id, ts_start_ms, fs_hz, samples) VALUES (?,?,?,?)"
         )) {
             ps.setString(1, bedId);
-            ps.setLong(2, start);
+            ps.setLong(2, startMs);
             ps.setInt(3, fs);
             ps.setString(4, samples);
             ps.executeUpdate();
@@ -104,7 +111,6 @@ public class DbTelemetryStore extends AbstractTelemetryStore {
         if (bedId == null || bedId.isBlank()) return null;
 
         PatientTelemetry out = new PatientTelemetry();
-
         try (Connection c = open()) {
             List<Row> rows = new ArrayList<>();
 
@@ -147,14 +153,13 @@ public class DbTelemetryStore extends AbstractTelemetryStore {
                 ps.setString(1, bedId);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        Long start = rs.getLong(1);
-                        Integer fs = rs.getInt(2);
+                        long start = rs.getLong(1);
+                        int fs = rs.getInt(2);
                         String samples = rs.getString(3);
-                        if (start != null) setField(out, start, fs, samples);
+                        setField(out, start, fs, samples);
                     }
                 }
             }
-
         } catch (SQLException e) {
             log.log(Level.WARNING, "DB get failed for " + bedId, e);
             return null;
@@ -189,6 +194,7 @@ public class DbTelemetryStore extends AbstractTelemetryStore {
         try (Connection c = open();
              PreparedStatement ps = c.prepareStatement("SELECT bed_id FROM patients ORDER BY bed_id");
              ResultSet rs = ps.executeQuery()) {
+
             while (rs.next()) {
                 String bed = rs.getString(1);
                 PatientTelemetry t = get(bed);
@@ -222,11 +228,8 @@ public class DbTelemetryStore extends AbstractTelemetryStore {
     }
 
     private static void setNullableDouble(PreparedStatement ps, int idx, Double v) throws SQLException {
-        if (v == null || (v.isNaN())) {
-            ps.setNull(idx, Types.DOUBLE);
-        } else {
-            ps.setDouble(idx, v);
-        }
+        if (v == null || v.isNaN()) ps.setNull(idx, Types.DOUBLE);
+        else ps.setDouble(idx, v);
     }
 
     private static String joinDoubles(List<Double> xs) {
@@ -243,6 +246,7 @@ public class DbTelemetryStore extends AbstractTelemetryStore {
     private static final class Row {
         final long tsMs;
         final Double hr, rr, sys, dia, temp;
+
         Row(long tsMs, Double hr, Double rr, Double sys, Double dia, Double temp) {
             this.tsMs = tsMs;
             this.hr = hr;

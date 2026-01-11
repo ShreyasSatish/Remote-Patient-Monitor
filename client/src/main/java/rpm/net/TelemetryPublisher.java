@@ -13,50 +13,138 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-public class TelemetryPublisher {
+public final class TelemetryPublisher {
+
+    private static final String ENV_URL = "RPM_TELEMETRY_URL";
+    private static final String PROP_URL = "rpm.telemetry.url";
+
+    private static final String ENV_PERIOD_MS = "RPM_TELEMETRY_PERIOD_MS";
+    private static final String PROP_PERIOD_MS = "rpm.telemetry.period.ms";
+
     private final HttpClient client = HttpClient.newHttpClient();
     private final String url;
+    private final long periodMs;
+
     private final int rawFsHz = 250;
-    private final int targetFsHz = 125;
     private final int downsampleFactor = 2;
-    private final int chunkSamples = 125;
+    private final int targetFsHz = rawFsHz / downsampleFactor;
+
+    // Send at most 1 second of ECG per upload
+    private final int chunkSamples = targetFsHz;
+
+    // Keep at most ~10 seconds of ECG buffered per patient
+    private final int ecgBufferCapacitySamples = targetFsHz * 10;
+
     private final Map<PatientId, EcgBuf> ecg = new HashMap<>();
     private long lastSendMs = -1;
 
-    public TelemetryPublisher() {
-        this(System.getProperty("rpm.telemetry.url", "http://localhost:8080/servlet/telemetry"));
+    public static Optional<TelemetryPublisher> tryCreateFromSystem() {
+        String u = resolveUrlFromSystem();
+        if (u == null) return Optional.empty();
+        try {
+            return Optional.of(new TelemetryPublisher(u, resolvePeriodMsFromSystem()));
+        } catch (IllegalArgumentException ex) {
+            System.out.println("[telemetry] " + ex.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    private static String resolveUrlFromSystem() {
+        String env = System.getenv(ENV_URL);
+        if (env != null && !env.isBlank()) return env.trim();
+
+        String prop = System.getProperty(PROP_URL);
+        if (prop != null && !prop.isBlank()) return prop.trim();
+
+        return null;
+    }
+
+    private static long resolvePeriodMsFromSystem() {
+        String env = System.getenv(ENV_PERIOD_MS);
+        if (env != null && !env.isBlank()) {
+            Long parsed = parsePositiveLong(env.trim());
+            if (parsed != null) return parsed;
+        }
+
+        String prop = System.getProperty(PROP_PERIOD_MS);
+        if (prop != null && !prop.isBlank()) {
+            Long parsed = parsePositiveLong(prop.trim());
+            if (parsed != null) return parsed;
+        }
+
+        return 30_000L; // default: 30s
+    }
+
+    private static Long parsePositiveLong(String s) {
+        try {
+            long v = Long.parseLong(s);
+            return v > 0 ? v : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     public TelemetryPublisher(String url) {
-        this.url = url;
+        this(url, 30_000L);
+    }
+
+    public TelemetryPublisher(String url, long periodMs) {
+        this.url = validateUrl(url);
+        this.periodMs = Math.max(1, periodMs);
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public long getPeriodMs() {
+        return periodMs;
+    }
+
+    private static String validateUrl(String url) {
+        String u = url == null ? "" : url.trim();
+        if (u.isEmpty()) throw new IllegalArgumentException("Telemetry URL is blank");
+        if (!u.contains("://")) throw new IllegalArgumentException("Telemetry URL must be absolute (include https://...)");
+        return u;
     }
 
     public void onTick(WardManager ward, Instant simTime) {
-        long nowMs = simTime.toEpochMilli();
-        for (PatientId id : ward.getPatientIds()) {
+        if (ward == null) return;
+
+        long nowMs = (simTime != null) ? simTime.toEpochMilli() : System.currentTimeMillis();
+
+        List<PatientId> ids = ward.getPatientIds();
+        for (PatientId id : ids) {
             double[] seg = ward.getPatientLastEcgSegment(id);
             if (seg == null || seg.length == 0) continue;
-            EcgBuf b = ecg.computeIfAbsent(id, k -> new EcgBuf());
+
+            EcgBuf b = ecg.computeIfAbsent(id, k -> new EcgBuf(ecgBufferCapacitySamples));
             b.append(seg, downsampleFactor, nowMs);
         }
 
-        if (lastSendMs >= 0 && (nowMs - lastSendMs) < 1000) return;
+        if (lastSendMs >= 0 && (nowMs - lastSendMs) < periodMs) return;
         lastSendMs = nowMs;
 
-        String json = buildPayload(ward, nowMs);
-        postAsync(json);
+        String payload = buildPayload(ward, nowMs);
+        if (payload == null) return;
+
+        postAsync(payload);
     }
 
     private String buildPayload(WardManager ward, long nowMs) {
-        StringBuilder sb = new StringBuilder(64 * ward.getPatientCount());
+        List<PatientId> ids = ward.getPatientIds();
+        if (ids == null || ids.isEmpty()) return null;
+
+        StringBuilder sb = new StringBuilder(64 * Math.max(1, ward.getPatientCount()));
         sb.append("{\"patients\":{");
 
-        List<PatientId> ids = ward.getPatientIds();
-        for (int i = 0; i < ids.size(); i++) {
-            PatientId id = ids.get(i);
-            String bed = id.getDisplayName();
+        boolean first = true;
+
+        for (PatientId id : ids) {
             VitalSnapshot snap = ward.getPatientLatestSnapshot(id);
+            if (snap == null) continue;
 
             Double hr = val(snap, VitalType.HEART_RATE);
             Double rr = val(snap, VitalType.RESP_RATE);
@@ -65,12 +153,14 @@ public class TelemetryPublisher {
             Double temp = val(snap, VitalType.TEMPERATURE);
 
             EcgBuf b = ecg.get(id);
-            double[] chunk = (b != null) ? b.takeChunk(chunkSamples) : null;
-            Long chunkStart = (b != null && chunk != null) ? b.lastChunkStartMs : null;
+            EcgBuf.EcgChunk chunk = (b != null) ? b.takeLatestChunk(chunkSamples, targetFsHz) : null;
 
-            if (i > 0) sb.append(",");
-            sb.append("\"").append(bed).append("\":{");
+            if (!first) sb.append(",");
+            first = false;
 
+            String bed = id.getDisplayName();
+
+            sb.append("\"").append(escape(bed)).append("\":{");
             sb.append("\"ts\":[").append(nowMs).append("],");
             sb.append("\"hr\":[").append(numOrNull(hr)).append("],");
             sb.append("\"rr\":[").append(numOrNull(rr)).append("],");
@@ -78,13 +168,13 @@ public class TelemetryPublisher {
             sb.append("\"dia\":[").append(numOrNull(dia)).append("],");
             sb.append("\"temp\":[").append(numOrNull(temp)).append("]");
 
-            if (chunk != null && chunk.length > 0 && chunkStart != null) {
-                sb.append(",\"ecgTsStart\":").append(chunkStart);
+            if (chunk != null) {
+                sb.append(",\"ecgTsStart\":").append(chunk.startMs);
                 sb.append(",\"ecgFs\":").append(targetFsHz);
                 sb.append(",\"ecg\":[");
-                for (int k = 0; k < chunk.length; k++) {
-                    if (k > 0) sb.append(",");
-                    sb.append(chunk[k]);
+                for (int i = 0; i < chunk.samples.length; i++) {
+                    if (i > 0) sb.append(",");
+                    sb.append(chunk.samples[i]);
                 }
                 sb.append("]");
             }
@@ -93,70 +183,97 @@ public class TelemetryPublisher {
         }
 
         sb.append("}}");
-        return sb.toString();
+
+        return first ? null : sb.toString();
     }
 
     private void postAsync(String json) {
-        HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .build();
+        try {
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
 
-        client.sendAsync(req, HttpResponse.BodyHandlers.discarding());
+            client.sendAsync(req, HttpResponse.BodyHandlers.discarding())
+                    .exceptionally(ex -> {
+                        System.out.println("[telemetry] POST error: " + ex.getMessage());
+                        return null;
+                    });
+        } catch (Exception ex) {
+            System.out.println("[telemetry] POST build error: " + ex.getMessage());
+        }
     }
 
     private static Double val(VitalSnapshot snap, VitalType type) {
         if (snap == null || snap.getValues() == null) return null;
         Double v = snap.getValues().get(type);
-        if (v == null || v.isNaN()) return null;
+        if (v == null || v.isNaN() || v.isInfinite()) return null;
         return v;
     }
 
     private static String numOrNull(Double v) {
-        return v == null ? "null" : Double.toString(v);
+        return (v == null) ? "null" : Double.toString(v);
+    }
+
+    private static String escape(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
     private static final class EcgBuf {
-        private double[] buf = new double[512];
+        private final double[] ring;
         private int size = 0;
-        private long startMs = -1;
-        long lastChunkStartMs;
+        private int head = 0;
+        private long lastEndMs = -1;
 
-        void append(double[] seg, int factor, long nowMs) {
+        EcgBuf(int capacity) {
+            this.ring = new double[Math.max(32, capacity)];
+        }
+
+        void append(double[] seg, int factor, long endMs) {
             if (seg == null || seg.length == 0) return;
-            if (startMs < 0) startMs = nowMs;
+            lastEndMs = endMs;
 
-            for (int i = 0; i < seg.length; i += factor) {
-                ensure(size + 1);
-                buf[size++] = seg[i];
+            for (int i = 0; i < seg.length; i += Math.max(1, factor)) {
+                double v = seg[i];
+                if (Double.isNaN(v) || Double.isInfinite(v)) continue;
+
+                if (size < ring.length) {
+                    ring[(head + size) % ring.length] = v;
+                    size++;
+                } else {
+                    // overwrite oldest
+                    ring[head] = v;
+                    head = (head + 1) % ring.length;
+                }
             }
         }
 
-        double[] takeChunk(int n) {
-            if (size < n) return null;
+        EcgChunk takeLatestChunk(int n, int fsHz) {
+            if (size < n || lastEndMs < 0) return null;
+
             double[] out = new double[n];
-            System.arraycopy(buf, 0, out, 0, n);
 
-            int remain = size - n;
-            if (remain > 0) {
-                System.arraycopy(buf, n, buf, 0, remain);
+            int startIndex = (head + (size - n)) % ring.length;
+            for (int i = 0; i < n; i++) {
+                out[i] = ring[(startIndex + i) % ring.length];
             }
-            size = remain;
 
-            lastChunkStartMs = startMs;
-            startMs = -1;
+            long durMs = (long) (1000.0 * n / fsHz);
+            long startMs = lastEndMs - durMs;
 
-            return out;
+            return new EcgChunk(startMs, out);
         }
 
-        private void ensure(int need) {
-            if (need <= buf.length) return;
-            int cap = buf.length;
-            while (cap < need) cap *= 2;
-            double[] nbuf = new double[cap];
-            System.arraycopy(buf, 0, nbuf, 0, size);
-            buf = nbuf;
+        static final class EcgChunk {
+            final long startMs;
+            final double[] samples;
+
+            EcgChunk(long startMs, double[] samples) {
+                this.startMs = startMs;
+                this.samples = samples;
+            }
         }
     }
 }

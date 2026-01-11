@@ -1,7 +1,8 @@
 package rpm.ui.app;
 
 public final class UISettings {
-    private int patientsPerScreen = 2; // default for your dashboard
+
+    private int patientsPerScreen = 2;
     private boolean rotationEnabled = false;
     private int rotationSeconds = 10;
 
@@ -18,10 +19,10 @@ public final class UISettings {
     public void setRotationSeconds(int secs) { rotationSeconds = clamp(secs, 5, 60); }
 
     public AlertPreference getAlertPreference() { return alertPreference; }
-    public void setAlertPreference(AlertPreference pref) { alertPreference = pref; }
+    public void setAlertPreference(AlertPreference pref) { if (pref != null) alertPreference = pref; }
 
     public AlertDuration getAlertDuration() { return alertDuration; }
-    public void setAlertDuration(AlertDuration d) { alertDuration = d; }
+    public void setAlertDuration(AlertDuration d) { if (d != null) alertDuration = d; }
 
     public void resetDefaults() {
         patientsPerScreen = 2;
