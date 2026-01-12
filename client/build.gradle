@@ -4,16 +4,11 @@ plugins {
     id 'org.openjfx.javafxplugin' version '0.0.14'
 }
 
-//java {
-//    toolchain {
-//        languageVersion = JavaLanguageVersion.of(17)
-//    }
-//}
-
 application {
-    mainClass = 'rpm.demo.WardFxDemo'
+    mainClass = 'rpm.ui.app.RpmApp'
 }
 
+/**
 sourceSets {
     main {
         java {
@@ -21,14 +16,27 @@ sourceSets {
         }
     }
 }
+ **/
 
 javafx {
     version = "17.0.10"
-    modules = ['javafx.controls']
+    modules = ['javafx.controls', 'javafx.graphics','javafx.media']
 }
 
 dependencies {
 
-    // JSON support for TelemetryService
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
+}
+
+tasks.withType(JavaExec).configureEach {
+    def envUrl = System.getenv("RPM_TELEMETRY_URL")
+    if (envUrl != null && !envUrl.trim().isEmpty()) {
+        systemProperty "rpm.telemetry.url", envUrl.trim()
+    }
+
+    System.properties.each { k, v ->
+        if (k != null && k.toString().startsWith("rpm.telemetry.")) {
+            systemProperty k.toString(), v.toString()
+        }
+    }
 }

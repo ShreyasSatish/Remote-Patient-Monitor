@@ -9,28 +9,32 @@ repositories {
     mavenCentral()
 }
 
-war{
+java {
     sourceCompatibility = JavaVersion.VERSION_11
-    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+war {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    // zip runtime deps into the WAR
     from {
-        configurations.runtimeClasspath.collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
-tasks.register('stage'){
-    dependsOn 'build'
+tasks.register('stage') {
     dependsOn 'clean'
+    dependsOn 'build'
 }
 build.mustRunAfter clean
 
 dependencies {
-    compileOnly group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
-    providedCompile 'javax.servlet:javax.servlet-api:4.0.1'
 
+    compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
+
+    implementation "org.postgresql:postgresql:42.7.3"
+    
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
-    implementation 'org.postgresql:postgresql:42.7.3'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'

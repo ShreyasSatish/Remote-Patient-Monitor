@@ -4,6 +4,19 @@
 *.iws
 *.ipr
 
+# gradle
+.gradle
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+.kotlin
+
+out/
+**/out/
+build/
+.gradle/
+
+
 # Compiled class file
 *.class
 
@@ -19,7 +32,6 @@
 # Package Files #
 *.jar
 # Allow Gradle wrapper
-!gradle/wrapper/gradle-wrapper.jar
 *.war
 *.nar
 *.ear
@@ -30,3 +42,10 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store

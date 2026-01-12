@@ -70,11 +70,11 @@ goto fail
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\lib\rpm.jar;%APP_HOME%\lib\javafx-controls-17.0.10-win.jar;%APP_HOME%\lib\javafx-graphics-17.0.10-win.jar;%APP_HOME%\lib\javafx-graphics-17.0.10.jar;%APP_HOME%\lib\javafx-base-17.0.10-win.jar;%APP_HOME%\lib\javafx-base-17.0.10.jar
+set CLASSPATH=%APP_HOME%\lib\rpm.jar
 
 
 @rem Execute rpm
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %RPM_OPTS%  -classpath "%CLASSPATH%" rpm.demo.WardFxDemo %*
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %RPM_OPTS%  -classpath "%CLASSPATH%"  %*
 
 :end
 @rem End local scope for the variables with windows NT shell
