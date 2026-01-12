@@ -30,9 +30,7 @@ public final class AppShell extends BorderPane {
 
         overlayController = new AlertOverlayController(ctx, overlayView);
 
-        // =====================================================
-        // ✅ FORCE BLUE BACKGROUND FOR ENTIRE APP CONTENT AREA
-        // =====================================================
+        // forces a blue background
         contentPane.setStyle("-fx-background-color: #A0C1D1;");
         stack.setStyle("-fx-background-color: #A0C1D1;");
         setStyle("-fx-background-color: #A0C1D1;");
