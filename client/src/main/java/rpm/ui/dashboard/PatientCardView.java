@@ -15,32 +15,24 @@ import rpm.ui.bindings.VitalDisplay;
 
 public final class PatientCardView extends VBox {
 
-    // ---------------------------
     // UI labels
-    // ---------------------------
     private final Label title = new Label();
     private final Label hr = new Label();
     private final Label rr = new Label();
     private final Label bp = new Label();
     private final Label temp = new Label();
 
-    // ---------------------------
-    // Resolve button
-    // ---------------------------
+    // resolve button
     private final Button resolveBtn = new Button("Resolve");
     private Runnable onResolve = () -> {};
 
-    // ---------------------------
-    // Alert flashing
-    // ---------------------------
+   // alert flashes
     private Timeline flasher;
     private boolean flashOn = false;
     private boolean hovered = false;
     private boolean alerting = false;
 
-    // ---------------------------
-    // Constructors
-    // ---------------------------
+  // constructors
 
     /** ✅ No-arg constructor (keeps compatibility) */
     public PatientCardView() {
@@ -53,9 +45,7 @@ public final class PatientCardView extends VBox {
         setModel(model);
     }
 
-    // ---------------------------
     // UI setup
-    // ---------------------------
     private void buildUi() {
         setSpacing(8);
         setPadding(new Insets(12));
@@ -90,9 +80,6 @@ public final class PatientCardView extends VBox {
         applyStyle();
     }
 
-    // ---------------------------
-    // Public API
-    // ---------------------------
 
     public void setModel(PatientTileModel t) {
         if (t == null) return;
@@ -111,9 +98,7 @@ public final class PatientCardView extends VBox {
         this.onResolve = (r != null) ? r : () -> {};
     }
 
-    // ---------------------------
-    // Alert flashing
-    // ---------------------------
+    // alert flashing
 
     public void setAlerting(boolean on) {
         if (this.alerting == on) return;
@@ -144,9 +129,7 @@ public final class PatientCardView extends VBox {
         flashOn = false;
     }
 
-    // ---------------------------
-    // Styling
-    // ---------------------------
+   //style
 
     private void applyStyle() {
         if (alerting) {

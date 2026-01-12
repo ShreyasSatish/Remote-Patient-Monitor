@@ -43,7 +43,6 @@ public final class MenuView extends BorderPane {
         left.setPrefWidth(520);
         right.setPrefWidth(520);
 
-        // ✅ IMPORTANT: no AppShell here
         setCenter(content);
     }
 }

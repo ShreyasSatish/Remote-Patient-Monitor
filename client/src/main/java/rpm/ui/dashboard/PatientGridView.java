@@ -49,7 +49,7 @@ public final class PatientGridView extends BorderPane {
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
-        // ✅ Use CSS (reliable) to kill viewport white background
+        // Use CSS (reliable) to kill viewport white background
         scroll.getStyleClass().add("dashboard-scroll");
         scroll.setPannable(false);
 

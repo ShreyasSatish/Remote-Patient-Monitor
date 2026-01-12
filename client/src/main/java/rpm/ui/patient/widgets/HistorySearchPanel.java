@@ -17,9 +17,6 @@ import java.util.Map;
 
 public final class HistorySearchPanel extends VBox {
 
-    // ----------------------------
-    // ORIGINAL FIELDS (UNCHANGED)
-    // ----------------------------
     private final DatePicker datePicker = new DatePicker(LocalDate.now());
     private final Spinner<Integer> hour = new Spinner<>(0, 23, LocalTime.now().getHour());
     private final Spinner<Integer> minute = new Spinner<>(0, 59, LocalTime.now().getMinute());
@@ -32,9 +29,6 @@ public final class HistorySearchPanel extends VBox {
         setSpacing(8);
         setPadding(new Insets(12));
 
-        // ------------------------------------------------
-        // ✅ WHITE CARD STYLE (ADDED)
-        // ------------------------------------------------
         setStyle(
                 "-fx-border-color: #cccccc;" +
                         "-fx-border-radius: 10;" +
@@ -42,25 +36,18 @@ public final class HistorySearchPanel extends VBox {
                         "-fx-background-color: white;"
         );
 
-        // ------------------------------------------------
-        // ✅ AUTO SIZE (ADDED)
-        // ------------------------------------------------
+     // allows autosizing of boxes
         setMinHeight(Region.USE_COMPUTED_SIZE);
         setPrefHeight(Region.USE_COMPUTED_SIZE);
         setMaxHeight(Region.USE_COMPUTED_SIZE);
 
-        // ------------------------------------------------
-        // ✅ RESULT LABEL AUTO RESIZE (ADDED)
-        // ------------------------------------------------
+
         result.setWrapText(true);
         result.setMaxWidth(Double.MAX_VALUE);
 
         Button fetch = new Button("Fetch snapshot");
         fetch.setOnAction(e -> {
 
-            // ----------------------------
-            // ORIGINAL LOGIC (UNCHANGED)
-            // ----------------------------
             Instant target = toInstant();
             Instant from = target.minusSeconds(120);
             Instant to = target.plusSeconds(120);
@@ -90,9 +77,7 @@ public final class HistorySearchPanel extends VBox {
                 );
             }
 
-            // ------------------------------------------------
-            // ✅ FORCE PANEL TO RESIZE AFTER TEXT CHANGE (ADDED)
-            // ------------------------------------------------
+           // change of panel size (auto) once text is added
             requestLayout();
         });
 
@@ -106,9 +91,6 @@ public final class HistorySearchPanel extends VBox {
         );
     }
 
-    // ----------------------------
-    // ORIGINAL METHOD (UNCHANGED)
-    // ----------------------------
     private Instant toInstant() {
         LocalDate d = datePicker.getValue();
         LocalTime t = LocalTime.of(hour.getValue(), minute.getValue(), second.getValue());

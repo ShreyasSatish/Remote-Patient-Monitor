@@ -83,22 +83,6 @@ public final class AddPatientPanel extends VBox {
                     + " | condition=" + c);
         });
 
-        /**
-         Button add = new Button("Add patient");
-         add.setOnAction(e -> {
-         PatientId added = ctx.ward.addPatient();
-         System.out.println("Added " + added.getDisplayName()
-         + " | name=" + name.getText()
-         + " | age=" + age.getValue()
-         + " | condition=" + condition.getValue());
-
-         // IMPORTANT:
-         // Right now WardManager.addPatient() doesn't accept metadata.
-         // For your UI demo, print it or store it in a UI-side map.
-         // Later, we can add an overload in WardManager to store label/conditions in PatientCard.
-         });
-
-         **/
 
 
         getChildren().addAll(title,
