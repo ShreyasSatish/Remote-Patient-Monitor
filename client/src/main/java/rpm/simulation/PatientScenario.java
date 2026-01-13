@@ -1,16 +1,23 @@
 package rpm.simulation;
 
-/**
- * High-level clinical patient.
- * Each scenario just encodes baseline + ranges for our simulators.
+/*
+ Defines high-level clinical patient scenarios.
+
+ Each scenario encodes baseline values and safe physiological ranges
+ for the vital sign simulators. These values are used to initialize
+ patient profiles and constrain randomly generated vital signs so
+ that they remain medically plausible.
+
+ Scenarios represent simplified clinical archetypes rather than
+ full diagnostic models.
  */
 public enum PatientScenario {
 
     NORMAL_ADULT(
-            75.0, 60.0, 100.0,     // HR baseline/min/max
-            16.0, 12.0, 20.0,      // RR baseline/min/max
-            120.0, 80.0, 90.0, 140.0, // BP baseline sys/dia + min/max sys
-            36.8, 36.5, 37.5       // Temp baseline/min/max
+            75.0, 60.0, 100.0,         // HR baseline / min / max (bpm)
+            16.0, 12.0, 20.0,          // RR baseline / min / max (breaths/min)
+            120.0, 80.0, 90.0, 140.0,  // BP baseline sys / dia + min / max systolic (mmHg)
+            36.8, 36.5, 37.5           // Temperature baseline / min / max (°C)
     ),
 
     BRADYCARDIA(
@@ -34,19 +41,23 @@ public enum PatientScenario {
             36.9, 36.5, 37.7
     );
 
+    // Heart rate (beats per minute)
     private final double hrBaseline;
     private final double hrMin;
     private final double hrMax;
 
+    // Respiratory rate (breaths per minute)
     private final double rrBaseline;
     private final double rrMin;
     private final double rrMax;
 
+    // Blood pressure (mmHg)
     private final double bpBaselineSystolic;
     private final double bpBaselineDiastolic;
     private final double bpMinSystolic;
     private final double bpMaxSystolic;
 
+    // Body temperature (°C)
     private final double tempBaseline;
     private final double tempMin;
     private final double tempMax;

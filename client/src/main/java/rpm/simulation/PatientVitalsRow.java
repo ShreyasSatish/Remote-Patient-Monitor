@@ -5,14 +5,22 @@ import rpm.domain.PatientId;
 import java.time.Instant;
 
 public final class PatientVitalsRow {
+
+    // Identifies which patient this row belongs to
     private final PatientId patientId;
+
+    // Time when the vitals were recorded
     private final Instant timestamp;
+
+    // Optional display label (e.g. patient name or bed label)
     private final String label;
-    private final double hr;
-    private final double rr;
-    private final double sys;
-    private final double dia;
-    private final double temp;
+
+    // Vital values
+    private final double hr;    // heart rate
+    private final double rr;    // respiratory rate
+    private final double sys;   // systolic blood pressure
+    private final double dia;   // diastolic blood pressure
+    private final double temp;  // body temperature
 
     public PatientVitalsRow(PatientId patientId,
                             Instant timestamp,
@@ -21,6 +29,7 @@ public final class PatientVitalsRow {
                             double sys,
                             double dia,
                             double temp) {
+        // Default constructor without a label
         this(patientId, timestamp, "", hr, rr, sys, dia, temp);
     }
 
@@ -34,7 +43,10 @@ public final class PatientVitalsRow {
                             double temp) {
         this.patientId = patientId;
         this.timestamp = timestamp;
+
+        // Avoid storing null labels
         this.label = label != null ? label : "";
+
         this.hr = hr;
         this.rr = rr;
         this.sys = sys;
@@ -43,11 +55,11 @@ public final class PatientVitalsRow {
     }
 
     public PatientId getPatientId() { return patientId; }
-    public Instant getTimestamp() { return timestamp; }
-    public String getLabel() { return label; }
-    public double getHr() { return hr; }
-    public double getRr() { return rr; }
-    public double getSys() { return sys; }
-    public double getDia() { return dia; }
-    public double getTemp() { return temp; }
+    public Instant getTimestamp()   { return timestamp; }
+    public String getLabel()        { return label; }
+    public double getHr()           { return hr; }
+    public double getRr()           { return rr; }
+    public double getSys()          { return sys; }
+    public double getDia()          { return dia; }
+    public double getTemp()         { return temp; }
 }

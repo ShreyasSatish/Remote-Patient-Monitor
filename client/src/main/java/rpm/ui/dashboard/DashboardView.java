@@ -8,6 +8,8 @@ import rpm.ui.app.AppContext;
 import rpm.ui.app.Router;
 import rpm.ui.layout.TopBanner;
 
+// Visual container for dashboard screen. Connect grid of patients with
+// controller. Manage background timers for data refreshing and auto-page rotation
 public final class DashboardView extends BorderPane {
 
     private final AppContext ctx;
@@ -31,6 +33,7 @@ public final class DashboardView extends BorderPane {
         controller.refreshPatients();
         controller.renderPage();
 
+        // Setup primary update loop. Run every second to fetch new simulation data and display
         uiTick = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             controller.refreshPatients();
             long nowMs = ctx.clock.getSimTime().toEpochMilli();
@@ -40,20 +43,24 @@ public final class DashboardView extends BorderPane {
         uiTick.setCycleCount(Timeline.INDEFINITE);
         uiTick.play();
 
+        // Setup page rotation
         rotateTick = new Timeline();
         rotateTick.setCycleCount(Timeline.INDEFINITE);
         configureRotation();
 
+        // If no longer on dashboard, stop timers to save resources
         sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene == null) {
                 uiTick.stop();
                 rotateTick.stop();
             } else {
+                // If back on dashboard check rotation settings
                 configureRotation();
             }
         });
     }
 
+    // Configure automatic page turner based on user settings
     private void configureRotation() {
         rotateTick.stop();
         rotateTick.getKeyFrames().clear();

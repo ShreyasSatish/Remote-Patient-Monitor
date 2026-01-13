@@ -1,9 +1,6 @@
 package rpm.domain;
 
-/**
- * Defines the types of vitals we simulate and monitor.
- */
-
+// Types of vitals that are simulated and monitored in the system
 public enum VitalType {
     HEART_RATE,
     RESP_RATE,

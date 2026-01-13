@@ -3,9 +3,12 @@ package rpm.domain;
 import java.util.Objects;
 
 public final class PatientId {
+
+    // Internal numeric identifier (must be positive)
     private final int value;
 
     public PatientId(int value) {
+        // Prevent invalid IDs
         if (value <= 0) {
             throw new IllegalArgumentException("PatientId must be positive");
         }
@@ -16,6 +19,7 @@ public final class PatientId {
         return value;
     }
 
+    // Returns a label that acts as an identifier
     public String getDisplayName() {
         return String.format("Bed %02d", value);
     }
@@ -33,6 +37,7 @@ public final class PatientId {
         return Objects.hash(value);
     }
 
+    // Useful for logging and debugging
     @Override
     public String toString() {
         return getDisplayName();

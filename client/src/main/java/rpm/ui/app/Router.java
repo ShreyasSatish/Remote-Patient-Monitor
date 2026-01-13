@@ -18,13 +18,16 @@ import rpm.ui.layout.AppShell;
 import rpm.ui.patient.PatientDetailView;
 import rpm.ui.layout.SettingsPopup;
 
-import java.awt.*;
-
 public final class Router {
+
     private final Stage stage;
     private final AppContext ctx;
     private final AppShell shell;
 
+    /*
+    - Handles navigation between the main screens of the application.
+    - Controls which view is currently displayed inside the app shell.
+    */
     public Router(Stage stage, AppContext ctx) {
         this.stage = stage;
         this.ctx = ctx;
@@ -32,6 +35,7 @@ public final class Router {
 
         Scene scene = new Scene(shell, 1100, 750);
 
+        // Load global stylesheet
         var cssUrl = Router.class.getResource("/rpm/ui/theme/rancho.css");
         if (cssUrl != null) {
             scene.getStylesheets().add(cssUrl.toExternalForm());
@@ -46,6 +50,7 @@ public final class Router {
         shell.setContent(content);
     }
 
+    // Switch to login screen
     public void showLogin() {
         stage.setTitle("RPM - Login");
         shell.setTop(null);
@@ -63,13 +68,13 @@ public final class Router {
         BorderPane.setAlignment(card, Pos.CENTER);
         BorderPane.setMargin(card, new Insets(24));
 
-        // top-right power button
+        // Top-right power button on login screen
         HBox top = new HBox();
         top.getStyleClass().add("top-banner");
         top.setPadding(new Insets(10, 14, 10, 14));
         top.setAlignment(Pos.CENTER_RIGHT);
 
-        javafx.scene.control.Button powerBtn = new javafx.scene.control.Button("⏻");
+        Button powerBtn = new Button("⏻");
         powerBtn.getStyleClass().add("banner-btn");
         powerBtn.setMinHeight(38);
         powerBtn.setOnAction(e -> SettingsPopup.showLoginOnlyPowerOff(powerBtn));
@@ -81,23 +86,7 @@ public final class Router {
         setContent(bg);
     }
 
-
-    private Node buildLoginTopBar() {
-        HBox bar = new HBox();
-        bar.getStyleClass().add("top-banner"); // reuse same look
-        bar.setPadding(new Insets(10, 14, 10, 14));
-        bar.setAlignment(Pos.CENTER_RIGHT);
-
-        Button powerBtn = new Button("⏻");
-        powerBtn.getStyleClass().add("banner-btn");
-        powerBtn.setOnAction(e -> SettingsPopup.showLoginOnlyPowerOff(powerBtn));
-        powerBtn.setMinHeight(38);
-
-        bar.getChildren().add(powerBtn);
-        return bar;
-    }
-
-
+    // Switch to main dashboard
     public void showDashboard() {
         stage.setTitle("RPM - Dashboard");
         shell.setTop(shell.getBanner());
@@ -107,7 +96,7 @@ public final class Router {
         updateBannerUser();
     }
 
-
+    // Switch to detailed view for a specific patient
     public void showPatientDetail(PatientId id) {
         stage.setTitle("RPM - Patient " + id.getDisplayName());
         shell.setTop(shell.getBanner());
@@ -115,6 +104,7 @@ public final class Router {
         setContent(new PatientDetailView(ctx, this, id));
     }
 
+    // Switch to settings screen
     public void showSettings() {
         stage.setTitle("RPM - Settings");
         shell.setTop(shell.getBanner());
@@ -122,30 +112,26 @@ public final class Router {
         setContent(new rpm.ui.menu.MenuView(ctx, this));
 
         updateBannerUser();
-        /**
-        stage.setTitle("RPM - Patient " + id.getDisplayName());
-        shell.setTop(shell.getBanner());
-        shell.setAlertsEnabled(true);
-
-        setContent(new PatientDetailView(ctx, this, id));
-        updateBannerUser();
-         **/ // this is the new code
     }
 
+    // Log out the current user and return to login screen
     public void logout() {
         ctx.session.clear();
         showLogin();
     }
 
+    // Exit the application completely
     public void powerOffApp() {
         Platform.exit();
     }
 
+    // Reset UI settings and restart the dashboard view
     public void restartAppUiOnly() {
         ctx.settings.resetDefaults();
         showDashboard();
     }
 
+    // Update the banner text with the logged-in user's name
     private void updateBannerUser() {
         if (ctx.session.isLoggedIn()) {
             NurseUser u = ctx.session.getUser();

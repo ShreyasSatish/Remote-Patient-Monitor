@@ -10,25 +10,39 @@ import java.util.*;
 
 public final class ReportGenerator {
 
-    public PatientReport generate(PatientId patientId, Instant from, Instant to, PatientDataSource src) {
+    // Builds a report for a patient over the given time range
+    public PatientReport generate(PatientId patientId,
+                                  Instant from,
+                                  Instant to,
+                                  PatientDataSource src) {
+
+        // Load raw data from the data source
         List<VitalSnapshot> snaps = src.getVitals(patientId, from, to);
         List<AlarmTransition> alarms = src.getAlarmTransitions(patientId, from, to);
 
-        EnumMap<VitalType, StatsAccumulator> acc = new EnumMap<>(VitalType.class);
-        for (VitalType vt : VitalType.values()) acc.put(vt, new StatsAccumulator());
+        // Accumulators used to calculate statistics for each vital
+        EnumMap<VitalType, StatsAccumulator> acc =
+                new EnumMap<>(VitalType.class);
+        for (VitalType vt : VitalType.values()) {
+            acc.put(vt, new StatsAccumulator());
+        }
 
+        // Feed all snapshot values into the accumulators
         for (VitalSnapshot s : snaps) {
             Map<VitalType, Double> vals = s.getValues();
             for (Map.Entry<VitalType, Double> e : vals.entrySet()) {
                 VitalType vt = e.getKey();
                 Double v = e.getValue();
                 if (v == null || Double.isNaN(v) || Double.isInfinite(v)) continue;
+
                 StatsAccumulator a = acc.get(vt);
                 if (a != null) a.add(v);
             }
         }
 
-        EnumMap<VitalType, VitalSummary> summaries = new EnumMap<>(VitalType.class);
+        // Convert accumulators into final summaries
+        EnumMap<VitalType, VitalSummary> summaries =
+                new EnumMap<>(VitalType.class);
         for (Map.Entry<VitalType, StatsAccumulator> e : acc.entrySet()) {
             VitalSummary s = e.getValue().toSummary();
             if (s != null) summaries.put(e.getKey(), s);
@@ -37,6 +51,7 @@ public final class ReportGenerator {
         return new PatientReport(patientId, from, to, summaries, alarms);
     }
 
+    // Collects basic statistics for a single vital
     private static final class StatsAccumulator {
         int n = 0;
         double sum = 0.0;
@@ -44,7 +59,7 @@ public final class ReportGenerator {
         double max = Double.NEGATIVE_INFINITY;
 
         void add(double v) {
-            // n is just the number of data points used for the report. 60 will be max for now, with 1 min.
+            // Number of samples used for the report (around 60 for a 1 minute window)
             n++;
             sum += v;
             if (v < min) min = v;
@@ -57,4 +72,3 @@ public final class ReportGenerator {
         }
     }
 }
-

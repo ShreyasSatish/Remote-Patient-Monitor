@@ -16,34 +16,45 @@ import java.util.Map;
 import java.util.Random;
 
 public class PatientSimulator {
+
+    // Individual simulators for each vital sign
     private final HeartRateSimulator heartRateSimulator;
     private final RespRateSimulator respRateSimulator;
     private final BloodPressureSimulator bloodPressureSimulator;
     private final TemperatureSimulator temperatureSimulator;
 
+    // ECG configuration
     private final double ecgSamplingFrequencyHz = 250.0;
     private final double ecgWindowSeconds = 4.0;
 
     private final EcgGenerator ecgGenerator;
     private final EcgRingBuffer ecgRingBuffer;
 
+    // Last generated ECG data and heart rate (used for ECG generation)
     private double[] lastEcgSegment = new double[0];
     private double lastHeartRateBpm = 75.0;
 
+    // Chronic conditions assigned to this patient
     private EnumSet<ChronicCondition> chronicConditions = EnumSet.noneOf(ChronicCondition.class);
 
+    // Random source for modifiers and event triggering
     private final Random modifierRandom = new Random();
+
+    // Active and recently changed medical events
     private final List<PatientEvent> activeEvents = new ArrayList<>();
     private final List<PatientEvent> startedEvents = new ArrayList<>();
     private final List<PatientEvent> endedEvents = new ArrayList<>();
 
     public PatientSimulator() {
+        // Default simulators
         this.heartRateSimulator = new HeartRateSimulator();
         this.respRateSimulator = new RespRateSimulator();
         this.bloodPressureSimulator = new BloodPressureSimulator();
         this.temperatureSimulator = new TemperatureSimulator();
 
         this.ecgGenerator = new EcgsynGenerator();
+
+        // Pre-size the ECG ring buffer to hold a rolling window
         int ecgWindowSamples = (int) Math.round(ecgSamplingFrequencyHz * ecgWindowSeconds);
         this.ecgRingBuffer = new EcgRingBuffer(ecgWindowSamples);
     }
@@ -58,11 +69,14 @@ public class PatientSimulator {
         this.temperatureSimulator = temperatureSimulator;
 
         this.ecgGenerator = new EcgsynGenerator();
+
+        // Pre-size the ECG ring buffer to hold a rolling window
         int ecgWindowSamples = (int) Math.round(ecgSamplingFrequencyHz * ecgWindowSeconds);
         this.ecgRingBuffer = new EcgRingBuffer(ecgWindowSamples);
     }
 
     public void setChronicConditions(EnumSet<ChronicCondition> conditions) {
+        // Default to empty if null or empty input is provided
         if (conditions == null || conditions.isEmpty()) {
             this.chronicConditions = EnumSet.noneOf(ChronicCondition.class);
             return;
@@ -71,10 +85,11 @@ public class PatientSimulator {
     }
 
     public EnumSet<ChronicCondition> getChronicConditions() {
+        // Return a copy so callers cannot modify internal state
         return EnumSet.copyOf(chronicConditions);
     }
 
-    // Triggers a medical event
+    // Triggers a medical event (up to a maximum of two at once)
     public void triggerEvent(PatientEventType type, Instant startTime) {
         if (type == null || startTime == null) return;
         if (activeEvents.size() >= 2) return;
@@ -84,29 +99,39 @@ public class PatientSimulator {
         startedEvents.add(event);
     }
 
+    // Returns and clears newly started events
     public List<PatientEvent> drainStartedEvents() {
         List<PatientEvent> out = new ArrayList<>(startedEvents);
         startedEvents.clear();
         return out;
     }
 
+    // Returns and clears completed events
     public List<PatientEvent> drainEndedEvents() {
         List<PatientEvent> out = new ArrayList<>(endedEvents);
         endedEvents.clear();
         return out;
     }
 
-    // Steps the time and updates vitals
+    /*
+    - Advances the simulation by one step.
+    - Updates all vitals, applies modifiers, and returns a snapshot.
+    */
     public VitalSnapshot nextSnapshot(Instant time) {
+        // Remove events that have completed
         removeFinishedEvents(time);
+
+        // Possibly trigger a new random event
         maybeStartRandomEvent(time);
 
+        // Base vital values from simulators
         double heartRate = heartRateSimulator.nextValue(time);
         double respRate = respRateSimulator.nextValue(time);
         double systolic = bloodPressureSimulator.nextValue(time);
         double diastolic = bloodPressureSimulator.getCurrentDiastolic();
         double temperature = temperatureSimulator.nextValue(time);
 
+        // Apply modifiers from chronic conditions and active events
         VitalDelta delta = new VitalDelta();
         applyChronicModifiers(delta);
         applyEventModifiers(time, delta);
@@ -117,14 +142,17 @@ public class PatientSimulator {
         diastolic += delta.dia;
         temperature += delta.temp;
 
+        // Clamp values to safe bounds
         heartRate = clamp(heartRate, 30.0, 220.0);
         respRate = clamp(respRate, 4.0, 60.0);
         systolic = clamp(systolic, 60.0, 240.0);
         diastolic = clamp(diastolic, 30.0, 160.0);
         temperature = clamp(temperature, 33.0, 41.5);
 
+        // Store heart rate for ECG generation
         lastHeartRateBpm = heartRate;
 
+        // Package vitals into a snapshot
         Map<VitalType, Double> values = new EnumMap<>(VitalType.class);
         values.put(VitalType.HEART_RATE, heartRate);
         values.put(VitalType.RESP_RATE, respRate);
@@ -135,7 +163,7 @@ public class PatientSimulator {
         return new VitalSnapshot(time, values);
     }
 
-    // Update ECG
+    // Generate ECG samples and update the rolling buffer
     public void advanceEcg(double durationSeconds) {
         if (durationSeconds <= 0.0) return;
 
@@ -163,7 +191,7 @@ public class PatientSimulator {
         return ecgSamplingFrequencyHz;
     }
 
-    // Adjust vitals based on chronic condition
+    // Adjust vitals based on chronic conditions
     private void applyChronicModifiers(VitalDelta d) {
         if (chronicConditions.contains(ChronicCondition.HYPERTENSION)) {
             d.sys += 6.0;
@@ -189,7 +217,7 @@ public class PatientSimulator {
         }
     }
 
-    // Adjust vitals based if there is an active event
+    // Apply effects of active medical events
     private void applyEventModifiers(Instant time, VitalDelta d) {
         for (PatientEvent e : activeEvents) {
             double k = e.intensityAt(time);
@@ -204,7 +232,7 @@ public class PatientSimulator {
         }
     }
 
-    // Grad largest change in vital
+    // Maximum effect for each event type
     private VitalDelta peakDeltaFor(PatientEventType type) {
         VitalDelta d = new VitalDelta();
         switch (type) {
@@ -257,6 +285,7 @@ public class PatientSimulator {
         }
     }
 
+    // Remove completed events from the active list
     private void removeFinishedEvents(Instant time) {
         for (Iterator<PatientEvent> it = activeEvents.iterator(); it.hasNext();) {
             PatientEvent e = it.next();
@@ -267,7 +296,7 @@ public class PatientSimulator {
         }
     }
 
-    // Randomly start a medical event
+    // Randomly start a medical event based on risk factors
     private void maybeStartRandomEvent(Instant time) {
         if (activeEvents.size() >= 2) return;
 
@@ -285,7 +314,7 @@ public class PatientSimulator {
         triggerEvent(type, time);
     }
 
-    // Manually start a medical event
+    // Pick an event type, biased by chronic conditions
     private PatientEventType chooseEventType() {
         double r = modifierRandom.nextDouble();
 
@@ -311,6 +340,7 @@ public class PatientSimulator {
         return v;
     }
 
+    // Holds temporary deltas applied to vitals during each step
     private static final class VitalDelta {
         double hr;
         double rr;

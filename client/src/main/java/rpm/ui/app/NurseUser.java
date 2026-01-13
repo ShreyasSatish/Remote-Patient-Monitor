@@ -1,6 +1,12 @@
 package rpm.ui.app;
 
 public final class NurseUser {
+
+    /*
+    - Represents a logged-in nurse user.
+    - Stores basic identity and display information.
+    */
+
     private final String username;
     private final String name;
     private final String surname;

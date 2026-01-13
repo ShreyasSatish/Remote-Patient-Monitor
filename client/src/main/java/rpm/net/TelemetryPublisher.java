@@ -1,3 +1,20 @@
+/*
+ * Reference [3] taken from https://docs.oracle.com/en/java/javase/11/docs/api/java.net.http/java/net/http/HttpClient.html
+ *
+ * This class implements periodic telemetry publishing using the Java
+ * standard HTTP client (java.net.http.HttpClient). It packages patient
+ * vital signs and ECG samples into a JSON payload and sends them to a
+ * configured remote endpoint.
+ *
+ * Networking reference:
+ * Oracle Java Documentation.
+ * "java.net.http.HttpClient API Specification."
+ * Used for building and sending asynchronous HTTP POST requests.
+ *
+ * Data handling and buffering logic is implemented locally for the RPM
+ * simulation environment.
+ */
+
 package rpm.net;
 
 import rpm.domain.PatientId;
@@ -277,3 +294,4 @@ public final class TelemetryPublisher {
         }
     }
 }
+/* end of Reference [3] */

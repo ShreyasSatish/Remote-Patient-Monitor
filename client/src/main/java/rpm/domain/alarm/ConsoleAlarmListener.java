@@ -1,14 +1,14 @@
 package rpm.domain.alarm;
 
-
-// IMPORTANT: this is just so i can test the alarm system!! will delete this once UI is set up properly.
-// - sohani
+// Temporary listener used for testing the alarm system in the console.
+// This will be removed once the UI handles alarms properly.
 
 public final class ConsoleAlarmListener implements AlarmListener {
+
     @Override
     public void onAlarmTransition(AlarmTransition t) {
         System.out.printf(
-                "[ALARM] %s %s: %s → %s (%s)%n",
+                "[ALARM] %s %s: %s -> %s (%s)%n",
                 t.getPatientId().getDisplayName(),
                 t.getVitalType(),
                 t.getFrom(),
@@ -19,6 +19,6 @@ public final class ConsoleAlarmListener implements AlarmListener {
 
     @Override
     public void onAlarmState(rpm.domain.PatientId id, java.time.Instant time, AlarmState state) {
-        // ignore continuous updates
+        // Ignored for now since this listener only cares about transitions
     }
 }

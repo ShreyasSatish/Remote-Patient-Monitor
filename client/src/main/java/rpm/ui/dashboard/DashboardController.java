@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// Control the main dashboard view. Manage list of patients,
+// search queries, and update UI when alarm occurs or data changes
 public final class DashboardController {
 
     private final AppContext ctx;
@@ -58,6 +60,7 @@ public final class DashboardController {
             renderPage();
         });
 
+        // Setup alarm listeners
         ctx.alarms.addListener(new rpm.domain.alarm.AlarmListener() {
             @Override
             public void onAlarmTransition(rpm.domain.alarm.AlarmTransition t) {
@@ -76,6 +79,7 @@ public final class DashboardController {
 
     }
 
+    // Refresh list of patients from simulation
     public void refreshPatients() {
         ids = ctx.ward.getPatientIds();
         int perScreen = ctx.settings.getPatientsPerScreen();
@@ -86,7 +90,7 @@ public final class DashboardController {
     public void tickUi(long nowMs) {
     }
 
-
+    // Rendering loop
     public void renderPage() {
         int perScreen = ctx.settings.getPatientsPerScreen();
         boolean showResolve = ctx.settings.getAlertDuration() == AlertDuration.UNTIL_RESOLVED;
@@ -104,6 +108,7 @@ public final class DashboardController {
 
     private long nowMs() { return ctx.clock.getSimTime().toEpochMilli(); }
 
+    // Handle the user clicking "Resolve" on an alerting patient
     public void resolve(PatientId id) {
         long nowMs = ctx.clock.getSimTime().toEpochMilli();
 
@@ -111,6 +116,7 @@ public final class DashboardController {
         renderPage();
     }
 
+    // Return currently alerting patients
     private List<PatientId> alertingPatients(long nowMs) {
         return ctx.ward.getPatientIds().stream()
                 .filter(id -> {
@@ -121,6 +127,7 @@ public final class DashboardController {
                 .collect(Collectors.toList());
     }
 
+    // Build a single patient tile for display
     private PatientTileModel buildTile(PatientId id) {
         VitalSnapshot snap = ctx.ward.getPatientLatestSnapshot(id);
         PatientCard card = ctx.ward.getPatientCard(id);
@@ -146,6 +153,7 @@ public final class DashboardController {
         return (int) Math.ceil(total / (double) Math.max(1, perScreen));
     }
 
+    // Search for a specific patient
     private PatientId findPatient(String q) {
         try {
             int bed = Integer.parseInt(q);

@@ -2,12 +2,15 @@ package rpm.ui.app;
 
 public final class UISettings {
 
+    /*
+    - Stores user-configurable UI preferences.
+    - Values are kept simple and validated when updated.
+    */
 
     private int patientsPerScreen = 4;
 
     private boolean rotationEnabled = true;
     private int rotationSeconds = 5;
-
 
     private AlertPreference alertPreference = AlertPreference.VISUAL_ONLY;
     private AlertDuration alertDuration = AlertDuration.UNTIL_RESOLVED;
@@ -19,6 +22,7 @@ public final class UISettings {
     }
 
     public void setPatientsPerScreen(int n) {
+        // Limit how many patient tiles can be shown
         patientsPerScreen = clamp(n, 1, 16);
     }
 
@@ -35,6 +39,7 @@ public final class UISettings {
     }
 
     public void setRotationSeconds(int secs) {
+        // Prevent very fast or extremely slow rotation
         rotationSeconds = clamp(secs, 3, 120);
     }
 
@@ -54,6 +59,7 @@ public final class UISettings {
         if (d != null) alertDuration = d;
     }
 
+    // Restore all settings back to their defaults
     public void resetDefaults() {
         patientsPerScreen = 4;
         rotationEnabled = true;
@@ -62,6 +68,7 @@ public final class UISettings {
         alertDuration = AlertDuration.UNTIL_RESOLVED;
     }
 
+    // Keep numeric settings within safe bounds
     private static int clamp(int v, int lo, int hi) {
         return Math.max(lo, Math.min(hi, v));
     }
