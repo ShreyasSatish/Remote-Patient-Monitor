@@ -2,6 +2,7 @@ package rpm.ui.bindings;
 
 import rpm.domain.VitalType;
 
+// Converts vital enums into readable string units
 public final class UnitFormatter {
     public static String unit(VitalType t) {
         switch (t) {
@@ -14,5 +15,6 @@ public final class UnitFormatter {
         }
     }
 
+    // Prevent instantiation with private constructor
     private UnitFormatter() {}
 }

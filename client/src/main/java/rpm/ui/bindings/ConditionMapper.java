@@ -5,8 +5,11 @@ import rpm.simulation.ChronicCondition;
 import java.util.EnumSet;
 import java.util.List;
 
+// Internal class to convert readable string representations of medical conditions
+// into internal 'ChronicCondition' emun types
 public final class ConditionMapper {
 
+    // Convert strings into 'ChronicCondition' enums
     public static EnumSet<ChronicCondition> fromStrings(List<String> input) {
         EnumSet<ChronicCondition> set = EnumSet.noneOf(ChronicCondition.class);
         if (input == null) return set;
@@ -18,6 +21,7 @@ public final class ConditionMapper {
         return set;
     }
 
+    // Mapping of single string to 'ChronicCondition' enum
     private static ChronicCondition mapOne(String s) {
         if (s == null) return null;
         switch (s.toLowerCase()) {
@@ -31,5 +35,6 @@ public final class ConditionMapper {
         }
     }
 
+    // Prevent instantiation of this class with private constructor
     private ConditionMapper() {}
 }
