@@ -14,6 +14,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
+// UI component for single patient card on main dashboard
 public final class PatientCardView extends VBox {
 
     private static final PseudoClass PC_ALERT = PseudoClass.getPseudoClass("alert");
@@ -47,10 +48,12 @@ public final class PatientCardView extends VBox {
         setTile(tile);
     }
 
+    // Register action for resolve button
     public void setOnResolve(Runnable r) {
         onResolve = (r == null) ? () -> {} : r;
     }
 
+    // Update card UI with new data from simulation
     public void setTile(PatientTileModel t) {
         String bed = (t.id == null) ? "" : t.id.getDisplayName();
         bedLabel.setText(bed);
@@ -76,6 +79,7 @@ public final class PatientCardView extends VBox {
         else stopFlash();
     }
 
+    // Construct top section of card (bed number, name, status, and resolve button)
     private void buildHeader() {
         bedLabel.getStyleClass().add("patient-bed");
         nameLabel.getStyleClass().add("patient-name");
@@ -99,6 +103,7 @@ public final class PatientCardView extends VBox {
         getChildren().add(header);
     }
 
+    // Construct 2x2 grid for vital signs
     private void buildVitals() {
         GridPane g = new GridPane();
         g.getStyleClass().add("vitals-grid");
@@ -117,6 +122,7 @@ public final class PatientCardView extends VBox {
         VBox.setVgrow(g, Priority.ALWAYS);
     }
 
+    // Helper to make standardised box for a single vital sign
     private VBox vitalBox(String label, Label value) {
         Label l = new Label(label);
         l.getStyleClass().add("vital-label");
@@ -129,6 +135,7 @@ public final class PatientCardView extends VBox {
         return box;
     }
 
+    // Start flashing alert animation loop if not already running
     private void startFlash() {
         if (flasher != null) return;
         flasher = new Timeline(new KeyFrame(Duration.millis(450), e -> {
@@ -139,6 +146,7 @@ public final class PatientCardView extends VBox {
         flasher.play();
     }
 
+    // Stop flashing animation and rest to normal
     private void stopFlash() {
         if (flasher != null) {
             flasher.stop();
@@ -152,12 +160,14 @@ public final class PatientCardView extends VBox {
         return (s == null || s.isBlank()) ? fallback : s;
     }
 
+    // Format doubles with the unit suffix
     private static String fmt(double v, String unit, int decimals) {
         if (Double.isNaN(v)) return "--";
         String f = "%." + decimals + "f";
         return String.format(f, v) + " " + unit;
     }
 
+    // Format blood pressure (Sys/Dia)
     private static String fmtBp(double sys, double dia) {
         if (Double.isNaN(sys) || Double.isNaN(dia)) return "--";
         return String.format("%.0f/%.0f mmHg", sys, dia);

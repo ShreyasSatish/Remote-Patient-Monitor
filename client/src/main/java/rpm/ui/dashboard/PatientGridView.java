@@ -16,6 +16,8 @@ import javafx.scene.layout.RowConstraints;
 import java.util.List;
 import java.util.function.Consumer;
 
+// Container to display paginated grid of patient cards. Handle geometry of
+// the grid and bottom page number bar
 public final class PatientGridView extends BorderPane {
 
     private static final int MIN_PER_SCREEN = 1;
@@ -62,11 +64,13 @@ public final class PatientGridView extends BorderPane {
         applyGridConstraints(columns, rows);
     }
 
+    // Construct bottom navigation bar (Prev | Page Num/Total | Next)
     private HBox buildPager() {
         prevBtn.getStyleClass().add("pager-btn");
         nextBtn.getStyleClass().add("pager-btn");
         pageLabel.getStyleClass().add("pager-label");
 
+        // Link buttons to actions
         prevBtn.setOnAction(e -> onPrevPage.run());
         nextBtn.setOnAction(e -> onNextPage.run());
 
@@ -111,6 +115,7 @@ public final class PatientGridView extends BorderPane {
         setTiles(tiles, pageIndex, pageCount, perScreenGuess, showResolve);
     }
 
+    // Main render method. Clears grid and rebuild with provided patient tiles
     public void setTiles(List<PatientTileModel> tiles, int pageIndex, int pageCount, int perScreen, boolean showResolve) {
         capacity = Math.max(MIN_PER_SCREEN, perScreen);
 
@@ -123,6 +128,7 @@ public final class PatientGridView extends BorderPane {
 
         grid.getChildren().clear();
 
+        // Populate grid with patients
         if (tiles != null && !tiles.isEmpty()) {
             int c = 0, r = 0;
             for (PatientTileModel t : tiles) {
@@ -141,6 +147,7 @@ public final class PatientGridView extends BorderPane {
                 if (r >= rows) break;
             }
 
+            // Fill remaining slops with invisible placeholders
             int filled = Math.min(tiles.size(), capacity);
 
             if (capacity > 1) {
@@ -161,6 +168,7 @@ public final class PatientGridView extends BorderPane {
             }
         }
 
+        // Update text and button states
         int current = pageIndex + 1;
         int total = Math.max(1, pageCount);
         pageLabel.setText("Page " + current + " / " + total);
@@ -170,6 +178,7 @@ public final class PatientGridView extends BorderPane {
         scroll.setVvalue(0);
     }
 
+    // Determine optimal grid layout
     private static int[] layoutFor(int capacity) {
         int cols;
         int rows;
@@ -184,6 +193,7 @@ public final class PatientGridView extends BorderPane {
         return new int[]{ cols, rows };
     }
 
+    // Apply JavaFX constraints to split grid space evenly
     private void applyGridConstraints(int cols, int rows) {
         grid.getColumnConstraints().clear();
         grid.getRowConstraints().clear();
