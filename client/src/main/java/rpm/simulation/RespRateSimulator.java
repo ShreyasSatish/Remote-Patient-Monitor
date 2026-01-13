@@ -31,6 +31,7 @@ public class RespRateSimulator implements VitalSimulator {
         this.currentRespPerMin = baselineRespPerMin;
     }
 
+    // Step time and find new values of respiratory rate
     @Override
     public double nextValue(Instant time) {
         double randomStep = random.nextGaussian() * 0.4;

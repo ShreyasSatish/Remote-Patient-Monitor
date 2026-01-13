@@ -10,101 +10,188 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.RowConstraints;
-import rpm.domain.PatientId;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 public final class PatientGridView extends BorderPane {
 
-    private static final int MAX_COLUMNS = 4;
+    private static final int MIN_PER_SCREEN = 1;
 
     private final GridPane grid = new GridPane();
-    private final ScrollPane scroll = new ScrollPane();
-
-    private Consumer<PatientId> onPatientClicked = id -> {};
-    private Consumer<PatientId> onResolve = id -> {};
-    private Runnable onNextPage = () -> {};
-    private Runnable onPrevPage = () -> {};
+    private final ScrollPane scroll = new ScrollPane(grid);
 
     private final Button prevBtn = new Button("Prev");
     private final Button nextBtn = new Button("Next");
     private final Label pageLabel = new Label();
 
+    private Consumer<rpm.domain.PatientId> onPatientClicked = id -> {};
+    private Consumer<rpm.domain.PatientId> onResolve = id -> {};
+
+    private Runnable onNextPage = () -> {};
+    private Runnable onPrevPage = () -> {};
+
+    private int columns = 2;
+    private int rows = 2;
+    private int capacity = 4;
+
     public PatientGridView() {
+        getStyleClass().add("patient-grid");
 
-        // Blue background behind the grid area
-        setStyle("-fx-background-color: #A0C1D1;");
-
-        grid.setPadding(new Insets(16));
+        grid.getStyleClass().add("patient-grid-inner");
         grid.setHgap(16);
         grid.setVgap(16);
-        grid.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        grid.setStyle("-fx-background-color: transparent;");
+        grid.setPadding(new Insets(18));
 
-        scroll.setContent(grid);
         scroll.setFitToWidth(true);
         scroll.setFitToHeight(true);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-
-        // ✅ Use CSS (reliable) to kill viewport white background
-        scroll.getStyleClass().add("dashboard-scroll");
         scroll.setPannable(false);
+        scroll.setStyle("-fx-background-color: transparent;");
+        grid.setStyle("-fx-background-color: transparent;");
 
         setCenter(scroll);
+        setBottom(buildPager());
+
+        int[] cr = layoutFor(capacity);
+        columns = cr[0];
+        rows = cr[1];
+        applyGridConstraints(columns, rows);
+    }
+
+    private HBox buildPager() {
+        prevBtn.getStyleClass().add("pager-btn");
+        nextBtn.getStyleClass().add("pager-btn");
+        pageLabel.getStyleClass().add("pager-label");
 
         prevBtn.setOnAction(e -> onPrevPage.run());
         nextBtn.setOnAction(e -> onNextPage.run());
 
-        HBox footer = new HBox(12, prevBtn, pageLabel, nextBtn);
-        footer.setAlignment(Pos.CENTER);
-        footer.setPadding(new Insets(10));
-        footer.setStyle("-fx-background-color: #A0C1D1;");
+        Region spacerL = new Region();
+        Region spacerR = new Region();
+        HBox.setHgrow(spacerL, Priority.ALWAYS);
+        HBox.setHgrow(spacerR, Priority.ALWAYS);
 
-        setBottom(footer);
+        HBox pager = new HBox(12, spacerL, prevBtn, pageLabel, nextBtn, spacerR);
+        pager.getStyleClass().add("pager");
+        pager.setAlignment(Pos.CENTER);
+        pager.setPadding(new Insets(10, 12, 14, 12));
+        return pager;
     }
 
-    public void setOnPatientClicked(Consumer<PatientId> handler) {
-        this.onPatientClicked = handler != null ? handler : (id -> {});
+    public void setOnPatientClicked(Consumer<rpm.domain.PatientId> handler) {
+        this.onPatientClicked = (handler == null) ? id -> {} : handler;
     }
 
-    public void setOnResolve(Consumer<PatientId> handler) {
-        this.onResolve = handler != null ? handler : (id -> {});
+    public void setOnResolve(Consumer<rpm.domain.PatientId> handler) {
+        this.onResolve = (handler == null) ? id -> {} : handler;
     }
 
     public void setOnNextPage(Runnable r) {
-        this.onNextPage = r != null ? r : (() -> {});
+        onNextPage = (r == null) ? () -> {} : r;
     }
 
     public void setOnPrevPage(Runnable r) {
-        this.onPrevPage = r != null ? r : (() -> {});
+        onPrevPage = (r == null) ? () -> {} : r;
     }
 
     public void fireNextPage() {
         onNextPage.run();
     }
 
-    public void setTiles(List<PatientTileModel> tiles,
-                         int pageIndex,
-                         int pageCount,
-                         boolean showResolve) {
+    public void firePrevPage() {
+        onPrevPage.run();
+    }
+
+    public void setTiles(List<PatientTileModel> tiles, int pageIndex, int pageCount, boolean showResolve) {
+        int perScreenGuess = (tiles == null) ? 4 : Math.max(MIN_PER_SCREEN, tiles.size());
+        setTiles(tiles, pageIndex, pageCount, perScreenGuess, showResolve);
+    }
+
+    public void setTiles(List<PatientTileModel> tiles, int pageIndex, int pageCount, int perScreen, boolean showResolve) {
+        capacity = Math.max(MIN_PER_SCREEN, perScreen);
+
+        int[] cr = layoutFor(capacity);
+        if (cr[0] != columns || cr[1] != rows) {
+            columns = cr[0];
+            rows = cr[1];
+            applyGridConstraints(columns, rows);
+        }
 
         grid.getChildren().clear();
+
+        if (tiles != null && !tiles.isEmpty()) {
+            int c = 0, r = 0;
+            for (PatientTileModel t : tiles) {
+                PatientCardView card = new PatientCardView(t);
+                card.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                GridPane.setHgrow(card, Priority.ALWAYS);
+                GridPane.setVgrow(card, Priority.ALWAYS);
+
+                card.setOnMouseClicked(e -> onPatientClicked.accept(t.id));
+                card.setOnResolve(() -> onResolve.accept(t.id));
+
+                grid.add(card, c, r);
+
+                c++;
+                if (c >= columns) { c = 0; r++; }
+                if (r >= rows) break;
+            }
+
+            int filled = Math.min(tiles.size(), capacity);
+
+            if (capacity > 1) {
+                while (filled < capacity) {
+                    int pc = filled % columns;
+                    int pr = filled / columns;
+                    if (pr >= rows) break;
+
+                    Region ph = new Region();
+                    ph.getStyleClass().add("patient-card-placeholder");
+                    ph.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                    GridPane.setHgrow(ph, Priority.ALWAYS);
+                    GridPane.setVgrow(ph, Priority.ALWAYS);
+
+                    grid.add(ph, pc, pr);
+                    filled++;
+                }
+            }
+        }
+
+        int current = pageIndex + 1;
+        int total = Math.max(1, pageCount);
+        pageLabel.setText("Page " + current + " / " + total);
+        prevBtn.setDisable(pageIndex <= 0);
+        nextBtn.setDisable(pageIndex >= total - 1);
+
+        scroll.setVvalue(0);
+    }
+
+    private static int[] layoutFor(int capacity) {
+        int cols;
+        int rows;
+
+        if (capacity <= 1) { cols = 1; rows = 1; }
+        else if (capacity == 2) { cols = 2; rows = 1; }
+        else if (capacity <= 4) { cols = 2; rows = 2; }
+        else if (capacity <= 6) { cols = 3; rows = 2; }
+        else if (capacity <= 9) { cols = 3; rows = 3; }
+        else { cols = 4; rows = (int) Math.ceil(capacity / 4.0); }
+
+        return new int[]{ cols, rows };
+    }
+
+    private void applyGridConstraints(int cols, int rows) {
         grid.getColumnConstraints().clear();
         grid.getRowConstraints().clear();
 
-        int count = (tiles == null) ? 0 : tiles.size();
-        if (count <= 0) count = 1;
-
-        int columns = Math.min(count, MAX_COLUMNS);
-        int rows = (int) Math.ceil(count / (double) columns);
-
-        double colPercent = 100.0 / columns;
+        double colPercent = 100.0 / cols;
         double rowPercent = 100.0 / rows;
 
-        for (int i = 0; i < columns; i++) {
+        for (int i = 0; i < cols; i++) {
             ColumnConstraints col = new ColumnConstraints();
             col.setPercentWidth(colPercent);
             col.setFillWidth(true);
@@ -119,33 +206,5 @@ public final class PatientGridView extends BorderPane {
             row.setVgrow(Priority.ALWAYS);
             grid.getRowConstraints().add(row);
         }
-
-        if (tiles != null) {
-            int c = 0, r = 0;
-
-            for (PatientTileModel t : tiles) {
-                PatientCardView card = new PatientCardView(t);
-                card.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-                GridPane.setHgrow(card, Priority.ALWAYS);
-                GridPane.setVgrow(card, Priority.ALWAYS);
-
-                card.setOnMouseClicked(e -> onPatientClicked.accept(t.id));
-                card.setOnResolve(() -> onResolve.accept(t.id));
-
-                grid.add(card, c, r);
-
-                c++;
-                if (c >= columns) { c = 0; r++; }
-            }
-        }
-
-        int current = pageIndex + 1;
-        int total = Math.max(1, pageCount);
-        pageLabel.setText("Page " + current + " / " + total);
-
-        prevBtn.setDisable(pageIndex <= 0);
-        nextBtn.setDisable(pageIndex >= total - 1);
-
-        scroll.setVvalue(0);
     }
 }

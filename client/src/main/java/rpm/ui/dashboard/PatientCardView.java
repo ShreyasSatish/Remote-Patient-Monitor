@@ -2,135 +2,138 @@ package rpm.ui.dashboard;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
-import rpm.ui.bindings.VitalDisplay;
 
 public final class PatientCardView extends VBox {
 
-    // ---------------------------
-    // UI labels
-    // ---------------------------
-    private final Label title = new Label();
-    private final Label hr = new Label();
-    private final Label rr = new Label();
-    private final Label bp = new Label();
-    private final Label temp = new Label();
+    private static final PseudoClass PC_ALERT = PseudoClass.getPseudoClass("alert");
+    private static final PseudoClass PC_FLASH = PseudoClass.getPseudoClass("flash");
 
-    // ---------------------------
-    // Resolve button
-    // ---------------------------
+    private final Label bedLabel = new Label();
+    private final Label nameLabel = new Label();
+
+    private final Label pill = new Label();
+
+    private final Label hrValue = new Label();
+    private final Label rrValue = new Label();
+    private final Label bpValue = new Label();
+    private final Label tempValue = new Label();
+
     private final Button resolveBtn = new Button("Resolve");
+
     private Runnable onResolve = () -> {};
 
-    // ---------------------------
-    // Alert flashing
-    // ---------------------------
     private Timeline flasher;
     private boolean flashOn = false;
-    private boolean hovered = false;
-    private boolean alerting = false;
 
-    // ---------------------------
-    // Constructors
-    // ---------------------------
+    public PatientCardView(PatientTileModel tile) {
+        getStyleClass().add("patient-card");
+        setPadding(new Insets(18));
+        setSpacing(14);
 
-    /** ✅ No-arg constructor (keeps compatibility) */
-    public PatientCardView() {
-        buildUi();
-    }
+        buildHeader();
+        buildVitals();
 
-    /** ✅ Model constructor (used by grid) */
-    public PatientCardView(PatientTileModel model) {
-        buildUi();
-        setModel(model);
-    }
-
-    // ---------------------------
-    // UI setup
-    // ---------------------------
-    private void buildUi() {
-        setSpacing(8);
-        setPadding(new Insets(12));
-        setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
-
-        // Spacer pushes resolve button down
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-
-        resolveBtn.setVisible(false);
-        resolveBtn.setOnAction(e -> onResolve.run());
-
-        StackPane resolveBox = new StackPane(resolveBtn);
-        resolveBox.setAlignment(Pos.BOTTOM_RIGHT);
-
-        getChildren().addAll(
-                title,
-                hr,
-                rr,
-                bp,
-                temp,
-                spacer,
-                resolveBox
-        );
-
-        // Hover tracking
-        setOnMouseEntered(e -> { hovered = true; applyStyle(); });
-        setOnMouseExited(e -> { hovered = false; applyStyle(); });
-
-        applyStyle();
-    }
-
-    // ---------------------------
-    // Public API
-    // ---------------------------
-
-    public void setModel(PatientTileModel t) {
-        if (t == null) return;
-
-        title.setText(t.displayName + "  (" + t.id.getDisplayName() + ")");
-        hr.setText("HR: " + VitalDisplay.fmt1(t.hr) + " bpm");
-        rr.setText("RR: " + VitalDisplay.fmt1(t.rr) + " br/min");
-        bp.setText("BP: " + VitalDisplay.fmt0(t.sys) + "/" + VitalDisplay.fmt0(t.dia) + " mmHg");
-        temp.setText("Temp: " + VitalDisplay.fmt1(t.temp) + " °C");
-
-        setAlerting(t.alerting);
-        resolveBtn.setVisible(t.showResolve);
+        setTile(tile);
     }
 
     public void setOnResolve(Runnable r) {
-        this.onResolve = (r != null) ? r : () -> {};
+        onResolve = (r == null) ? () -> {} : r;
     }
 
-    // ---------------------------
-    // Alert flashing
-    // ---------------------------
+    public void setTile(PatientTileModel t) {
+        String bed = (t.id == null) ? "" : t.id.getDisplayName();
+        bedLabel.setText(bed);
+        nameLabel.setText(safe(t.displayName, "Patient"));
 
-    public void setAlerting(boolean on) {
-        if (this.alerting == on) return;
-        this.alerting = on;
+        hrValue.setText(fmt(t.hr, "bpm", 1));
+        rrValue.setText(fmt(t.rr, "br/min", 1));
+        bpValue.setText(fmtBp(t.sys, t.dia));
+        tempValue.setText(fmt(t.temp, "°C", 1));
+
+        boolean alerting = t.alerting;
+        pseudoClassStateChanged(PC_ALERT, alerting);
+
+        boolean showResolve = t.showResolve;
+        resolveBtn.setVisible(showResolve);
+        resolveBtn.setManaged(showResolve);
+
+        pill.getStyleClass().removeAll("pill-ok", "pill-alert");
+        pill.getStyleClass().add(alerting ? "pill-alert" : "pill-ok");
+        pill.setText(alerting ? "ALERT" : "Stable");
 
         if (alerting) startFlash();
         else stopFlash();
+    }
 
-        applyStyle();
+    private void buildHeader() {
+        bedLabel.getStyleClass().add("patient-bed");
+        nameLabel.getStyleClass().add("patient-name");
+
+        VBox left = new VBox(2, bedLabel, nameLabel);
+
+        pill.getStyleClass().add("pill");
+        resolveBtn.getStyleClass().add("resolve-btn");
+        resolveBtn.setOnAction(e -> onResolve.run());
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox right = new HBox(10, pill, resolveBtn);
+        right.setAlignment(Pos.CENTER_RIGHT);
+
+        HBox header = new HBox(12, left, spacer, right);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.getStyleClass().add("patient-header");
+
+        getChildren().add(header);
+    }
+
+    private void buildVitals() {
+        GridPane g = new GridPane();
+        g.getStyleClass().add("vitals-grid");
+        g.setHgap(14);
+        g.setVgap(12);
+
+        g.add(vitalBox("HR", hrValue), 0, 0);
+        g.add(vitalBox("RR", rrValue), 1, 0);
+        g.add(vitalBox("BP", bpValue), 0, 1);
+        g.add(vitalBox("Temp", tempValue), 1, 1);
+
+        GridPane.setHgrow(g, Priority.ALWAYS);
+        GridPane.setVgrow(g, Priority.ALWAYS);
+
+        getChildren().add(g);
+        VBox.setVgrow(g, Priority.ALWAYS);
+    }
+
+    private VBox vitalBox(String label, Label value) {
+        Label l = new Label(label);
+        l.getStyleClass().add("vital-label");
+
+        value.getStyleClass().add("vital-value");
+
+        VBox box = new VBox(4, l, value);
+        box.getStyleClass().add("vital-box");
+        box.setFillWidth(true);
+        return box;
     }
 
     private void startFlash() {
         if (flasher != null) return;
-
-        flasher = new Timeline(new KeyFrame(Duration.millis(400), e -> {
+        flasher = new Timeline(new KeyFrame(Duration.millis(450), e -> {
             flashOn = !flashOn;
-            applyStyle();
+            pseudoClassStateChanged(PC_FLASH, flashOn);
         }));
         flasher.setCycleCount(Timeline.INDEFINITE);
         flasher.play();
@@ -142,38 +145,21 @@ public final class PatientCardView extends VBox {
             flasher = null;
         }
         flashOn = false;
+        pseudoClassStateChanged(PC_FLASH, false);
     }
 
-    // ---------------------------
-    // Styling
-    // ---------------------------
-
-    private void applyStyle() {
-        if (alerting) {
-            setStyle(flashOn ? alertStyle() : baseStyle());
-        } else {
-            setStyle(hovered ? hoverStyle() : baseStyle());
-        }
+    private static String safe(String s, String fallback) {
+        return (s == null || s.isBlank()) ? fallback : s;
     }
 
-    private static String baseStyle() {
-        return "-fx-border-color: #cccccc;" +
-                "-fx-border-radius: 10;" +
-                "-fx-background-radius: 10;" +
-                "-fx-background-color: white;";
+    private static String fmt(double v, String unit, int decimals) {
+        if (Double.isNaN(v)) return "--";
+        String f = "%." + decimals + "f";
+        return String.format(f, v) + " " + unit;
     }
 
-    private static String hoverStyle() {
-        return "-fx-border-color: #cccccc;" +
-                "-fx-border-radius: 10;" +
-                "-fx-background-radius: 10;" +
-                "-fx-background-color: #f5f5f5;";
-    }
-
-    private static String alertStyle() {
-        return "-fx-border-color: red;" +
-                "-fx-border-radius: 10;" +
-                "-fx-background-radius: 10;" +
-                "-fx-background-color: #ffcccc;";
+    private static String fmtBp(double sys, double dia) {
+        if (Double.isNaN(sys) || Double.isNaN(dia)) return "--";
+        return String.format("%.0f/%.0f mmHg", sys, dia);
     }
 }

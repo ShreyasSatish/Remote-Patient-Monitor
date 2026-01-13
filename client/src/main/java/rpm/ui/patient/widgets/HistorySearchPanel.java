@@ -2,6 +2,8 @@ package rpm.ui.patient.widgets;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import rpm.domain.PatientId;
@@ -17,9 +19,6 @@ import java.util.Map;
 
 public final class HistorySearchPanel extends VBox {
 
-    // ----------------------------
-    // ORIGINAL FIELDS (UNCHANGED)
-    // ----------------------------
     private final DatePicker datePicker = new DatePicker(LocalDate.now());
     private final Spinner<Integer> hour = new Spinner<>(0, 23, LocalTime.now().getHour());
     private final Spinner<Integer> minute = new Spinner<>(0, 59, LocalTime.now().getMinute());
@@ -29,38 +28,30 @@ public final class HistorySearchPanel extends VBox {
 
     public HistorySearchPanel(AppContext ctx, PatientId patientId) {
 
+        getStyleClass().add("panel-card");
         setSpacing(8);
         setPadding(new Insets(12));
 
-        // ------------------------------------------------
-        // ✅ WHITE CARD STYLE (ADDED)
-        // ------------------------------------------------
-        setStyle(
-                "-fx-border-color: #cccccc;" +
-                        "-fx-border-radius: 10;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-background-color: white;"
-        );
-
-        // ------------------------------------------------
-        // ✅ AUTO SIZE (ADDED)
-        // ------------------------------------------------
+        // allows autosizing of boxes
         setMinHeight(Region.USE_COMPUTED_SIZE);
         setPrefHeight(Region.USE_COMPUTED_SIZE);
         setMaxHeight(Region.USE_COMPUTED_SIZE);
 
-        // ------------------------------------------------
-        // ✅ RESULT LABEL AUTO RESIZE (ADDED)
-        // ------------------------------------------------
+
         result.setWrapText(true);
         result.setMaxWidth(Double.MAX_VALUE);
 
         Button fetch = new Button("Fetch snapshot");
+        fetch.getStyleClass().add("btn-soft");
+        fetch.setMaxWidth(Double.MAX_VALUE);
+
+        datePicker.setMaxWidth(Double.MAX_VALUE);
+        hour.setMaxWidth(Double.MAX_VALUE);
+        minute.setMaxWidth(Double.MAX_VALUE);
+        second.setMaxWidth(Double.MAX_VALUE);
+
         fetch.setOnAction(e -> {
 
-            // ----------------------------
-            // ORIGINAL LOGIC (UNCHANGED)
-            // ----------------------------
             Instant target = toInstant();
             Instant from = target.minusSeconds(120);
             Instant to = target.plusSeconds(120);
@@ -89,26 +80,24 @@ public final class HistorySearchPanel extends VBox {
                                 " | Temp " + VitalDisplay.fmt1(get(v, VitalType.TEMPERATURE))
                 );
             }
-
-            // ------------------------------------------------
-            // ✅ FORCE PANEL TO RESIZE AFTER TEXT CHANGE (ADDED)
-            // ------------------------------------------------
+           // change of panel size (auto) once text is added
             requestLayout();
         });
 
+        HBox timeRow = new HBox(10, hour, minute, second);
+        HBox.setHgrow(hour, Priority.ALWAYS);
+        HBox.setHgrow(minute, Priority.ALWAYS);
+        HBox.setHgrow(second, Priority.ALWAYS);
         getChildren().addAll(
                 new Label("History lookup (date/time):"),
                 datePicker,
                 new Label("Time (H:M:S):"),
-                hour, minute, second,
+                timeRow,
                 fetch,
                 result
         );
     }
 
-    // ----------------------------
-    // ORIGINAL METHOD (UNCHANGED)
-    // ----------------------------
     private Instant toInstant() {
         LocalDate d = datePicker.getValue();
         LocalTime t = LocalTime.of(hour.getValue(), minute.getValue(), second.getValue());

@@ -41,18 +41,24 @@ public class BloodPressureSimulator implements VitalSimulator {
 
     @Override
     public double nextValue(Instant time) {
+        // Step the Blood Pressure value
+
         double randomStep = random.nextGaussian() * 2.0;
+        // Pull the blood pressure slightly back to "normal" value
         double pullToBaseline = (baselineSystolic - currentSystolic) * 0.05;
 
         currentSystolic = currentSystolic + randomStep + pullToBaseline;
 
+        // Change max and min systolic values
         if (currentSystolic < minSystolic) {
             currentSystolic = minSystolic;
         } else if (currentSystolic > maxSystolic) {
             currentSystolic = maxSystolic;
         }
 
+        // Update diastolic pressure
         double targetDiastolic = baselineDiastolic + (currentSystolic - baselineSystolic) * 0.5;
+        // Add some noise to prevent 'perfect' relationship
         double diastolicNoise = random.nextGaussian() * 1.5;
         currentDiastolic = targetDiastolic + diastolicNoise;
 

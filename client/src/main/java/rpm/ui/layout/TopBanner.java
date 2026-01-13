@@ -1,42 +1,135 @@
 package rpm.ui.layout;
 
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import rpm.ui.app.AppContext;
 import rpm.ui.app.Router;
 
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import rpm.domain.PatientId;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+
 public final class TopBanner extends HBox {
 
+    private static final String LOGO_RESOURCE = "/rpm/ui/assets/rancho-logo.png";
+
+    private final Button homeBtn = new Button();
     private final Label userLabel = new Label();
     private final TextField searchField = new TextField();
+    private final Button settingsBtn = new Button("Settings");
+    private final Button powerBtn = new Button("⏻");
+    private final ContextMenu searchMenu = new ContextMenu();
 
     public TopBanner(AppContext ctx, Router router) {
-        setSpacing(10);
-        setPadding(new Insets(10));
+        getStyleClass().add("top-banner");
+        setAlignment(Pos.CENTER_LEFT);
+        setSpacing(12);
+        setPadding(new Insets(10, 14, 10, 14));
 
-        Button logoBtn = new Button("Home");
-        logoBtn.setOnAction(e -> router.showDashboard());
+        homeBtn.getStyleClass().add("banner-home");
+        homeBtn.setOnAction(e -> router.showDashboard());
+        homeBtn.setGraphic(buildLogo(34));
+        homeBtn.setText("Rancho");
+        homeBtn.setGraphicTextGap(10);
+        homeBtn.setContentDisplay(ContentDisplay.LEFT);
+        homeBtn.setMinHeight(40);
 
-        userLabel.setText(ctx.session.isLoggedIn()
-                ? ctx.session.getUser().getName() + " (" + ctx.session.getUser().getUsername() + ")"
-                : "");
+        userLabel.getStyleClass().add("banner-user");
+        userLabel.setText("");
 
-        searchField.setPromptText("Search patient / bed...");
+        searchField.getStyleClass().add("banner-search");   // ✅ fixed
+        searchField.setPromptText("Search patient / bed…");
+        searchField.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(searchField, Priority.ALWAYS);
 
-        Button menuBtn = new Button("Menu");
-        menuBtn.setOnAction(e -> router.showMenu());
+        searchMenu.setAutoHide(true);
 
-        Button settingsBtn = new Button("⏻");
-        settingsBtn.setOnAction(e -> SettingsPopup.show(settingsBtn, ctx, router));
+        searchField.textProperty().addListener((obs, oldV, newV) -> {
+            String q = (newV == null) ? "" : newV.trim().toLowerCase();
+            if (q.isEmpty()) {
+                searchMenu.hide();
+                return;
+            }
 
-        getChildren().addAll(logoBtn, userLabel, searchField, menuBtn, settingsBtn);
+            var matches = ctx.ward.getPatientIds().stream()
+                    .map(id -> {
+                        var card = ctx.ward.getPatientCard(id);
+                        String label = (card != null && card.getLabel() != null) ? card.getLabel() : "Patient";
+                        String bed = id.getDisplayName();              // "Bed 04"
+                        String full = bed + " • " + label;             // shown in dropdown
+                        String hay = (bed + " " + label).toLowerCase();
+                        return new Object[]{id, full, hay};
+                    })
+                    .filter(arr -> ((String)arr[2]).contains(q))
+                    .limit(8)
+                    .toList();
+
+            if (matches.isEmpty()) {
+                searchMenu.hide();
+                return;
+            }
+
+            searchMenu.getItems().clear();
+            for (var m : matches) {
+                var id = (rpm.domain.PatientId)m[0];
+                var text = (String)m[1];
+                var item = new javafx.scene.control.MenuItem(text);
+                item.setOnAction(e -> {
+                    searchMenu.hide();
+                    searchField.clear();
+                    router.showPatientDetail(id);
+                });
+                searchMenu.getItems().add(item);
+            }
+
+            if (!searchMenu.isShowing()) {
+                searchMenu.show(searchField, javafx.geometry.Side.BOTTOM, 0, 0);
+            }
+        });
+
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        settingsBtn.getStyleClass().add("banner-btn");
+        settingsBtn.setOnAction(e -> router.showSettings());
+        settingsBtn.setMinHeight(38);
+
+        powerBtn.getStyleClass().add("banner-btn");
+        powerBtn.setOnAction(e -> SettingsPopup.show(powerBtn, ctx, router));
+        powerBtn.setMinHeight(38);
+
+        getChildren().addAll(homeBtn, userLabel, searchField, spacer, settingsBtn, powerBtn);
     }
 
     public TextField getSearchField() { return searchField; }
-    public void setUserText(String s) { userLabel.setText(s); }
+
+    public void setUserText(String text) {
+        userLabel.setText(text == null ? "" : text);
+    }
+
+    private ImageView buildLogo(double width) {
+        var url = getClass().getResource(LOGO_RESOURCE);
+        if (url == null) return new ImageView();
+
+        ImageView iv = new ImageView(new Image(url.toExternalForm(), true));
+        iv.setPreserveRatio(true);
+        iv.setFitWidth(width);
+        iv.setSmooth(true);
+        return iv;
+    }
 }

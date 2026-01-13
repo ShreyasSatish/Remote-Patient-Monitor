@@ -21,15 +21,18 @@ public final class AlertOverlayView extends StackPane {
     private Runnable onResolveAll = () -> {};
 
     public AlertOverlayView() {
+
         setPickOnBounds(false);              // only capture clicks on the popup itself
         setMouseTransparent(true);
         box.setMouseTransparent(false);
 
         // Center-top container (you can change to bottom-right if you want)
-        StackPane.setAlignment(box, Pos.TOP_CENTER);
+        StackPane.setAlignment(box, Pos.CENTER);
         StackPane.setMargin(box, new Insets(12));
 
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 16; -fx-text-fill: white;");
+        box.getStyleClass().add("alert-popup");
+        title.getStyleClass().add("alert-title");
+        dismissAll.getStyleClass().add("resolve-btn"); // or a new "primary-btn"
 
         dismissAll.setOnAction(e -> onResolveAll.run());
 
@@ -39,12 +42,6 @@ public final class AlertOverlayView extends StackPane {
 
         box.setPadding(new Insets(12));
         box.setMaxWidth(520);
-        box.setStyle(
-                "-fx-background-color: rgba(190,70,70,0.92);" +
-                        "-fx-background-radius: 12;" +
-                        "-fx-border-radius: 12;" +
-                        "-fx-border-color: rgba(255,255,255,0.35);"
-        );
 
         list.setFillWidth(true);
 
@@ -97,9 +94,9 @@ public final class AlertOverlayView extends StackPane {
     private HBox row(AlertPopupItem it, boolean showResolveButtons) {
         Label l = new Label(it.text());
         l.setWrapText(true);
-        l.setStyle("-fx-text-fill: white; -fx-font-size: 13;");
 
         Button resolve = new Button("Resolve");
+        resolve.getStyleClass().add("resolve-btn");
         resolve.setVisible(showResolveButtons);
         resolve.setManaged(showResolveButtons);
         resolve.setOnAction(e -> onResolveOne.accept(it.id));
@@ -108,26 +105,32 @@ public final class AlertOverlayView extends StackPane {
         HBox.setHgrow(row.getChildren().get(1), Priority.ALWAYS);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(8));
-        row.setStyle("-fx-background-color: rgba(255,255,255,0.14); -fx-background-radius: 10;");
+
+        row.getStyleClass().add("alert-row");
+        l.getStyleClass().add("alert-row-text");
+
+        box.setMaxWidth(320);
+        box.setMaxHeight(220);
+        list.setFillWidth(true);
+        box.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 
         return row;
     }
 
     public static final class AlertPopupItem {
         public final PatientId id;
-        public final String displayName;
-        public final String reason;
+        public final String reason; // e.g. "HR out of range"
 
-        public AlertPopupItem(PatientId id, String displayName, String reason) {
+        public AlertPopupItem(PatientId id, String reason) {
             this.id = id;
-            this.displayName = displayName;
             this.reason = reason;
         }
 
         public String text() {
             String bed = id.getDisplayName();
-            String r = (reason == null || reason.isBlank()) ? "Out of range vitals" : reason;
-            return displayName + " (" + bed + "): " + r;
+            String r = (reason == null || reason.isBlank()) ? "Out of range" : reason;
+            return bed + " \u2013 " + r; // en dash
         }
     }
+
 }

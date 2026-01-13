@@ -18,10 +18,12 @@ public final class PatientEvent {
     public Instant getStartTime() { return startTime; }
     public double getDurationSeconds() { return durationSeconds; }
 
+    // Check if event has completed based on current time
     public boolean isFinished(Instant now) {
         return secondsSinceStart(now) >= durationSeconds;
     }
 
+    // Calculates the strength of the event at a specific moment in time
     public double intensityAt(Instant now) {
         double t = secondsSinceStart(now) / durationSeconds;
         if (t <= 0.0 || t >= 1.0) return 0.0;
@@ -42,10 +44,12 @@ public final class PatientEvent {
         return Duration.between(startTime, now).toMillis() / 1000.0;
     }
 
+    // Create new event with pre-defined duration
     public static PatientEvent create(PatientEventType type, Instant startTime) {
         return new PatientEvent(type, startTime, defaultDurationSeconds(type));
     }
 
+    // Gets standard duration for medical events
     private static double defaultDurationSeconds(PatientEventType type) {
         switch (type) {
             case FEVER_SPIKE: return 240.0;
