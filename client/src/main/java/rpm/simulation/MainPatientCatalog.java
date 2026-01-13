@@ -3,12 +3,16 @@ package rpm.simulation;
 import java.util.EnumSet;
 
 public final class MainPatientCatalog {
+
     private MainPatientCatalog() {
+        // Utility class; not intended to be instantiated
     }
 
-    // Build the minimum 8 patients, giving them predetermined conditions
+    // Returns a predefined patient template for the given bed number.
+    // Used to initialise a fixed set of demo patients in the simulation.
     public static PatientTemplate templateForBed(int bedNumber) {
         switch (bedNumber) {
+
             case 1:
                 return new PatientTemplate(
                         "Healthy (stable)",
@@ -78,4 +82,3 @@ public final class MainPatientCatalog {
         }
     }
 }
-

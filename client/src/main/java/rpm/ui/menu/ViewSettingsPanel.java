@@ -19,6 +19,7 @@ public final class ViewSettingsPanel extends VBox {
 
         Label current = new Label();
 
+        // Slider controls how many patients are shown per screen
         Slider slider = new Slider(1, 16, ctx.settings.getPatientsPerScreen());
         slider.setMajorTickUnit(1);
         slider.setMinorTickCount(0);
@@ -26,8 +27,10 @@ public final class ViewSettingsPanel extends VBox {
         slider.setShowTickLabels(true);
         slider.setShowTickMarks(true);
 
+        // Show the initial value
         current.setText("Patients per screen: " + ctx.settings.getPatientsPerScreen());
 
+        // Update settings and label whenever the slider moves
         slider.valueProperty().addListener((obs, oldV, newV) -> {
             int v = (int) Math.round(newV.doubleValue());
             ctx.settings.setPatientsPerScreen(v);

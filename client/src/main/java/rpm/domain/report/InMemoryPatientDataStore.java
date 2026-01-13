@@ -12,16 +12,21 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * NOTE - just for testing report now.
- * stores a rolling window of snapshots + alarm transitions in memory
- * will replace this with servlet history data once that is set up
- * - sb
+/*
+ - Temporary in-memory store used for testing reports.
+ - Keeps a rolling window of vital snapshots and alarm transitions.
+ - This will be replaced with persistent storage once the servlet layer is ready.
  */
-public final class InMemoryPatientDataStore implements PatientDataSource, WardDataListener, AlarmListener {
+public final class InMemoryPatientDataStore
+        implements PatientDataSource, WardDataListener, AlarmListener {
 
+    // How long data should be kept in memory
     private final Duration retention;
+
+    // Recent vital snapshots per patient
     private final Map<PatientId, Deque<VitalSnapshot>> vitalsByPatient = new HashMap<>();
+
+    // Recent alarm transitions per patient
     private final Map<PatientId, Deque<AlarmTransition>> alarmsByPatient = new HashMap<>();
 
     public InMemoryPatientDataStore(Duration retention) {
@@ -29,61 +34,76 @@ public final class InMemoryPatientDataStore implements PatientDataSource, WardDa
     }
 
     // WardDataListener
+
     @Override
     public synchronized void onVitalsSnapshot(PatientId id, VitalSnapshot snapshot) {
-        Deque<VitalSnapshot> q = vitalsByPatient.computeIfAbsent(id, k -> new ArrayDeque<>());
+        Deque<VitalSnapshot> q =
+                vitalsByPatient.computeIfAbsent(id, k -> new ArrayDeque<>());
         q.addLast(snapshot);
         pruneVitals(q, snapshot.getTimestamp());
     }
 
     @Override
     public void onEcgSegment(PatientId id, Instant time, double[] segment) {
-        // not needed for 1 min vitals report
+        // Not needed for the current reports
     }
 
     @Override
     public void onEventStarted(PatientId id, PatientEvent ev) {
-        // optional: could store started/ended events if we want in rport too
+        // Could store events here later if reporting needs it
     }
 
     @Override
     public void onEventEnded(PatientId id, PatientEvent ev) {
-        // optional
+        // Optional
     }
 
     // AlarmListener
+
     @Override
     public synchronized void onAlarmTransition(AlarmTransition transition) {
         PatientId id = transition.getPatientId();
-        Deque<AlarmTransition> q = alarmsByPatient.computeIfAbsent(id, k -> new ArrayDeque<>());
+        Deque<AlarmTransition> q =
+                alarmsByPatient.computeIfAbsent(id, k -> new ArrayDeque<>());
         q.addLast(transition);
         pruneAlarms(q, transition.getTime());
     }
 
     @Override
-    public void onAlarmState(PatientId id, Instant time, rpm.domain.alarm.AlarmState state) {
-        // we only store transitions for reporting right now
+    public void onAlarmState(PatientId id, Instant time,
+                             rpm.domain.alarm.AlarmState state) {
+        // Only transitions are stored for reporting at the moment
     }
 
     // PatientDataSource
+
     @Override
-    public synchronized List<VitalSnapshot> getVitals(PatientId id, Instant from, Instant to) {
+    public synchronized List<VitalSnapshot> getVitals(
+            PatientId id, Instant from, Instant to) {
+
         Deque<VitalSnapshot> q = vitalsByPatient.get(id);
         if (q == null) return Collections.emptyList();
+
         return q.stream()
-                .filter(s -> !s.getTimestamp().isBefore(from) && !s.getTimestamp().isAfter(to))
+                .filter(s -> !s.getTimestamp().isBefore(from)
+                        && !s.getTimestamp().isAfter(to))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public synchronized List<AlarmTransition> getAlarmTransitions(PatientId id, Instant from, Instant to) {
+    public synchronized List<AlarmTransition> getAlarmTransitions(
+            PatientId id, Instant from, Instant to) {
+
         Deque<AlarmTransition> q = alarmsByPatient.get(id);
         if (q == null) return Collections.emptyList();
+
         return q.stream()
-                .filter(a -> !a.getTime().isBefore(from) && !a.getTime().isAfter(to))
+                .filter(a -> !a.getTime().isBefore(from)
+                        && !a.getTime().isAfter(to))
                 .collect(Collectors.toList());
     }
 
+    // Remove old vital snapshots outside the retention window
     private void pruneVitals(Deque<VitalSnapshot> q, Instant now) {
         Instant cutoff = now.minus(retention);
         while (!q.isEmpty() && q.peekFirst().getTimestamp().isBefore(cutoff)) {
@@ -91,6 +111,7 @@ public final class InMemoryPatientDataStore implements PatientDataSource, WardDa
         }
     }
 
+    // Remove old alarm transitions outside the retention window
     private void pruneAlarms(Deque<AlarmTransition> q, Instant now) {
         Instant cutoff = now.minus(retention);
         while (!q.isEmpty() && q.peekFirst().getTime().isBefore(cutoff)) {

@@ -4,7 +4,6 @@ import rpm.domain.PatientId;
 import rpm.domain.VitalSnapshot;
 import rpm.domain.VitalType;
 
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -13,15 +12,18 @@ import java.util.Map;
 import java.util.Random;
 import java.util.EnumSet;
 
-
 public class WardManager {
+
+    // Minimum number of patients that must always exist
     public static final int MIN_PATIENTS = 8;
 
+    // Active patient simulators and their latest data
     private final Map<PatientId, PatientSimulator> patients = new LinkedHashMap<>();
     private final Map<PatientId, VitalSnapshot> latestSnapshots = new LinkedHashMap<>();
     private final Map<PatientId, double[]> lastEcgSegments = new LinkedHashMap<>();
     private final Map<PatientId, PatientCard> cards = new LinkedHashMap<>();
 
+    // Subscribers that want updates from the ward
     private final List<WardDataListener> listeners = new ArrayList<>();
 
     private final Random random = new Random();
@@ -33,9 +35,12 @@ public class WardManager {
     public WardManager(int initialPatients) {
         int n = Math.max(MIN_PATIENTS, initialPatients);
         Instant now = Instant.now();
+
+        // Create initial patients
         for (int i = 0; i < n; i++) {
             addPatientInternal(now);
         }
+
         selectedPatientId = new PatientId(1);
     }
 
@@ -61,6 +66,7 @@ public class WardManager {
     }
 
     public synchronized void setSelectedPatientId(PatientId id) {
+        // Fallback to bed 1 if the ID is invalid
         if (id == null || !patients.containsKey(id)) {
             selectedPatientId = new PatientId(1);
             return;
@@ -72,8 +78,7 @@ public class WardManager {
         return cards.get(id);
     }
 
-
-    // Add a patient with the specified parameters
+    // Add a new patient with a custom label and conditions
     public synchronized PatientId addPatient(String label, EnumSet<ChronicCondition> conditions) {
         PatientId id = addPatientInternal(Instant.now());
 
@@ -86,8 +91,7 @@ public class WardManager {
         return id;
     }
 
-
-    // Remove a specific patient with the specified ID
+    // Remove a patient (cannot remove below minimum count or fixed beds)
     public synchronized boolean removePatient(PatientId id) {
         if (id == null || !patients.containsKey(id)) return false;
         if (id.getValue() <= MIN_PATIENTS) return false;
@@ -104,7 +108,7 @@ public class WardManager {
         return true;
     }
 
-    // Trigger a medical event for the patient
+    // Trigger a medical event for a patient using the current time
     public synchronized void triggerEvent(PatientId id, PatientEventType type) {
         triggerEvent(id, type, Instant.now());
     }
@@ -115,11 +119,15 @@ public class WardManager {
         sim.triggerEvent(type, time);
     }
 
-    // Step time, advance EGCs for each patient
-    // Add vital snapshots and events into respective lists
+    /*
+    - Advances the simulation for all patients.
+    - Updates ECG continuously and vitals roughly once per second.
+    - Notifies listeners of new data and event changes.
+    */
     public synchronized void tick(Instant time, double dtSeconds) {
         List<WardDataListener> ls = new ArrayList<>(listeners);
 
+        // Update ECG data for each patient
         for (Map.Entry<PatientId, PatientSimulator> e : patients.entrySet()) {
             PatientId id = e.getKey();
             PatientSimulator sim = e.getValue();
@@ -135,9 +143,9 @@ public class WardManager {
             }
         }
 
+        // Only update vitals roughly once per second
         secondsSinceLastVitals += dtSeconds;
         if (secondsSinceLastVitals < 1.0) return;
-
         secondsSinceLastVitals -= 1.0;
 
         for (Map.Entry<PatientId, PatientSimulator> entry : patients.entrySet()) {
@@ -151,12 +159,14 @@ public class WardManager {
                 l.onVitalsSnapshot(id, snap);
             }
 
+            // Notify started events
             for (PatientEvent ev : sim.drainStartedEvents()) {
                 for (WardDataListener l : ls) {
                     l.onEventStarted(id, ev);
                 }
             }
 
+            // Notify ended events
             for (PatientEvent ev : sim.drainEndedEvents()) {
                 for (WardDataListener l : ls) {
                     l.onEventEnded(id, ev);
@@ -165,7 +175,7 @@ public class WardManager {
         }
     }
 
-    // Get a table of all the vitals
+    // Build a table-friendly snapshot of the latest vitals
     public synchronized List<PatientVitalsRow> getLatestVitalsTable() {
         List<PatientVitalsRow> rows = new ArrayList<>(patients.size());
 
@@ -210,7 +220,7 @@ public class WardManager {
         return getPatientLastEcgSegment(selectedPatientId);
     }
 
-    // Add a patient with baseline vitals
+    // Create and register a new patient internally
     private PatientId addPatientInternal(Instant now) {
         PatientId id = new PatientId(nextIdValue++);
         int bed = id.getValue();
@@ -219,6 +229,7 @@ public class WardManager {
         PatientProfile profile;
         PatientCard card;
 
+        // Use predefined templates for the first fixed beds
         if (bed <= MIN_PATIENTS) {
             PatientTemplate template = MainPatientCatalog.templateForBed(bed);
             if (template == null) {
@@ -237,6 +248,7 @@ public class WardManager {
                 card = new PatientCard(id, template.getLabel(), template.getConditions());
             }
         } else {
+            // Extra patients get a randomized healthy profile
             scenario = PatientScenario.NORMAL_ADULT;
             profile = PatientProfile.generateNormal(scenario, random);
             card = new PatientCard(id, "Healthy", null);
@@ -248,6 +260,7 @@ public class WardManager {
         patients.put(id, simulator);
         cards.put(id, card);
 
+        // Generate the first snapshot immediately
         VitalSnapshot first = simulator.nextSnapshot(now);
         latestSnapshots.put(id, first);
         lastEcgSegments.put(id, simulator.getLastEcgSegment());

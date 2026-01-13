@@ -23,23 +23,28 @@ public final class AppShell extends BorderPane {
     private final Timeline alertTick;
     private boolean alertsEnabled = true;
 
-
     public AppShell(AppContext ctx, Router router) {
+        // Top banner holds navigation, user info, etc.
         this.banner = new TopBanner(ctx, router);
 
         getStyleClass().add("app-bg");
         stack.getStyleClass().add("app-bg");
         contentPane.getStyleClass().add("app-bg");
 
+        // Place banner at the top of the layout
         setTop(banner);
 
+        // Controller manages alert behaviour and visibility
         overlayController = new AlertOverlayController(ctx, overlayView);
 
+        // Stack main content and alert overlay on top of each other
         stack.getChildren().addAll(contentPane, overlayView);
         setCenter(stack);
 
+        // Periodically update alert overlay
         alertTick = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
             if (!alertsEnabled) return;
+
             long nowMs = ctx.clock.getSimTime().toEpochMilli();
             overlayController.tick(nowMs);
         }));
@@ -47,6 +52,7 @@ public final class AppShell extends BorderPane {
         alertTick.play();
     }
 
+    // Replace the main content area with a new view
     public void setContent(Node node) {
         contentPane.setCenter(node);
     }
@@ -55,6 +61,7 @@ public final class AppShell extends BorderPane {
         return banner;
     }
 
+    // Enable or disable alert processing (used on login screen, etc.)
     public void setAlertsEnabled(boolean enabled) {
         this.alertsEnabled = enabled;
     }

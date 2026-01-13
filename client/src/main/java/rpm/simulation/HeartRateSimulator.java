@@ -4,10 +4,11 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Random;
 
-/**
- * Simulates heart rate (beats per minute) using a random-walk model around a baseline.
+/*
+ * Simulates heart rate in beats per minute using a random walk around a baseline.
  */
 public class HeartRateSimulator implements VitalSimulator {
+
     private final Random random;
     private final double baselineBpm;
     private final double minBpm;
@@ -19,11 +20,16 @@ public class HeartRateSimulator implements VitalSimulator {
         this(75.0, 60.0, 100.0, new Random());
     }
 
-    public HeartRateSimulator(double baselineBpm, double minBpm, double maxBpm) {
+    public HeartRateSimulator(double baselineBpm,
+                              double minBpm,
+                              double maxBpm) {
         this(baselineBpm, minBpm, maxBpm, new Random());
     }
 
-    public HeartRateSimulator(double baselineBpm, double minBpm, double maxBpm, Random random) {
+    public HeartRateSimulator(double baselineBpm,
+                              double minBpm,
+                              double maxBpm,
+                              Random random) {
         this.random = Objects.requireNonNull(random, "random");
         this.baselineBpm = baselineBpm;
         this.minBpm = minBpm;
@@ -33,15 +39,16 @@ public class HeartRateSimulator implements VitalSimulator {
 
     @Override
     public double nextValue(Instant time) {
-        // Step heart rate value
+        // Advance the simulated heart rate
 
         double randomStep = random.nextGaussian() * 1.5;
-        // Pull heart rate slightly back to 'normal' value
+
+        // Pull the value gently back toward the baseline
         double pullToBaseline = (baselineBpm - currentBpm) * 0.05;
 
         currentBpm = currentBpm + randomStep + pullToBaseline;
 
-        // Change min and max values
+        // Fix the heart rate within configured limits
         if (currentBpm < minBpm) {
             currentBpm = minBpm;
         } else if (currentBpm > maxBpm) {

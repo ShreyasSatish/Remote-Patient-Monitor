@@ -1,3 +1,19 @@
+/* Reference [2] taken from https://physionet.org/content/ecgsyn/1.0.0/Java/ecgApplet.java?
+ *
+ * Original Java source: "ecgApplet"
+ * Source distribution: PhysioNet ECGSYN Java implementation.
+ *
+ * This file is included in the project for educational use and has
+ * been kept functionally unchanged, except for the package name and
+ * minimal helper methods added so it can be accessed programmatically
+ * by the RPM project.
+ *
+ * Algorithm reference:
+ * McSharry, P. E., Clifford, G. D., Tarassenko, L., & Smith, L. A. (2003).
+ * "A dynamical model for generating synthetic electrocardiogram signals."
+ * IEEE Transactions on Biomedical Engineering, 50(3), 289–294.
+ */
+
 package rpm.external.ecgsyn;
 
 /************************************************************************/
@@ -64,7 +80,7 @@ import java.util.TimerTask;
 
 
 /*
- * This class formats a number in decimal notation or in 
+ * This class formats a number in decimal notation or in
  * scientific notation.
  */
 
@@ -126,7 +142,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
      * These constants used in drawText() method
      * for placement of the text within a given
      * rectangular area.
-     *********************************************/ 
+     *********************************************/
     final int CENTER = 0;
     final int LEFT   = 1;
     final int RIGHT  = 2;
@@ -145,14 +161,14 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
     final int horzScaleWidth = 100;
     final int horzScaleHeight = 20;
     final int fScaleNumSize = 9;
-    
+
     /****************************************************
      * Limit below which scale values use decimal format,
      * above which they use scientific format.
      ****************************************************/
     double upLimit = 100.0;
     double loLimit = 0.01;
-    
+
     /******************************
      * Ploting variables
      ******************************/
@@ -161,22 +177,22 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
     double  plotZoom = 0.008;
     double  plotZoomInc = 2;
     /* Flag Variable, show if data has been generated. */
-    private boolean ecgGenerated = false;    
+    private boolean ecgGenerated = false;
 
     /****************************************************************
-     *  GLOBAL ECG PARAMETERS:                                                  
+     *  GLOBAL ECG PARAMETERS:
      ****************************************************************/
     private int    N;               /*  Number of heart beats              */
     private double hrstd;           /*  Heart rate std                     */
     private double hrmean;          /*  Heart rate mean                    */
     private double lfhfratio;       /*  LF/HF ratio                        */
-    private int    sfecg;           /*  ECG sampling frequency             */        
+    private int    sfecg;           /*  ECG sampling frequency             */
     private int    sf;              /*  Internal sampling frequency        */
     private double amplitude;       /*  Amplitude for the plot area        */
-    private int seed;               /*  Seed                               */    
+    private int seed;               /*  Seed                               */
     private double Anoise;          /*  Amplitude of additive uniform noise*/
     private int    period;
-    /* Define frequency parameters for rr process 
+    /* Define frequency parameters for rr process
      * flo and fhi correspond to the Mayer waves and respiratory rate respectively
      */
     private double flo;             /*  Low frequency                      */
@@ -187,11 +203,11 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
     private double[] theta = new double[6]; /* ti not in radians*/
     private double[] a = new double[6];
     private double[] b = new double[6];
-    
+
     /*******************************
      * Variable for the Data table
      *******************************/
-    private String[] peakStr = {"", "P", "Q", "R", "S", "T"};    
+    private String[] peakStr = {"", "P", "Q", "R", "S", "T"};
 
     /******************************************
      * Variables to Animate ECG
@@ -223,10 +239,10 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         *Set maximize
         *********************/
         try{
-            ecgWindow.setMaximum(true);        
+            ecgWindow.setMaximum(true);
         } catch(java.beans.PropertyVetoException e){
             txtStatus.append("Exception Error : " + e + "\n");
-        }        
+        }
 
         /*********************
         *Init the data Table
@@ -256,12 +272,12 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         helpDialog.setBounds(80, 80, 600,500);
 
         /*************************
-         * Reset all Application 
+         * Reset all Application
          * to a init state.
-         *************************/        
+         *************************/
         resetECG();
     }
-    
+
     private void initComponents() {//GEN-BEGIN:initComponents
         paramDialog = new javax.swing.JDialog();
         paramDesktopPane = new javax.swing.JDesktopPane();
@@ -989,12 +1005,12 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
 
     private void zoomInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_zoomInButtonActionPerformed
         desktopPane.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
- 
+
         paramDialog.hide();
         plotZoom = plotZoom / plotZoomInc;
         ecgFrame.repaint();
 
-        desktopPane.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));        
+        desktopPane.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
     }//GEN-LAST:event_zoomInButtonActionPerformed
 
     private void zoomOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_zoomOutButtonActionPerformed
@@ -1022,19 +1038,19 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         ecgAnimatePanelWidth = ecgFrame.getBounds().width;
         ecgAnimateInitialZero = 0;
         ecgAnimateLastPoint.setLocation(0, posOriginY - (int)(Double.valueOf(tableValues.getValueAt(0, 1).toString()).doubleValue() * frameAmplitude / amplitude));
-        
+
         /* Create Timer */
         ecgAnimateTimer = new Timer();
         /* Schedule the Animate Plotting Task */
         ecgAnimateTimer.scheduleAtFixedRate(new ECGAnimate(), 0, ecgAnimateInterval);
-        
+
         /* Set the Animate Buttons */
         startECGAnimationSetControls();
     }//GEN-LAST:event_startAnimateButtonActionPerformed
 
     private void saveParamDialogButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveParamDialogButtonActionPerformed
         saveParametersValues();
-        paramDialog.hide();        
+        paramDialog.hide();
     }//GEN-LAST:event_saveParamDialogButtonActionPerformed
 
     private void resetParamDialogButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetParamDialogButtonActionPerformed
@@ -1042,7 +1058,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
     }//GEN-LAST:event_resetParamDialogButtonActionPerformed
 
     private void closeParamDialogButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeParamDialogButtonActionPerformed
-        paramDialog.hide();        
+        paramDialog.hide();
     }//GEN-LAST:event_closeParamDialogButtonActionPerformed
 
     private void paramButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_paramButtonActionPerformed
@@ -1052,7 +1068,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
     private void exportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportButtonActionPerformed
         paramDialog.hide();
         exportDialog.setBounds(80, 80,500,500);
-        exportDialog.show();     
+        exportDialog.show();
     }//GEN-LAST:event_exportButtonActionPerformed
 
     private void saveParametersValues(){
@@ -1127,7 +1143,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         // Otherwise, draw and return positive signal.
         g.drawString(msg,x,y);
 //                ecgFrame.revalidate();
-//                ecgFrame.repaint();        
+//                ecgFrame.repaint();
         return typeSize;
     }
 
@@ -1138,13 +1154,13 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         /* General Intergace parameters */
         txtN.setText("256");
         N = 256;
-        
+
         txtSfecg.setText("256");
-        sfecg = 256;        
+        sfecg = 256;
 
         txtSf.setText("512");
-        sf = 512;        
- 
+        sf = 512;
+
         txtAnoise.setText("0.1");
         Anoise = 0.1;
 
@@ -1159,7 +1175,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
 
         txtAmplitude.setText("1.4");
         amplitude = 1.4;
-        
+
         /* Spectral Characteristics parameters */
         txtFlo.setText("0.1");
         flo = 0.1;
@@ -1171,7 +1187,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         flostd = 0.01;
 
         txtFhistd.setText("0.01");
-        fhistd = 0.01;      
+        fhistd = 0.01;
 
         txtLfhfratio.setText("0.5");
         lfhfratio = 0.5;
@@ -1190,7 +1206,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         a[3]= 30.0;
         a[4]= -7.5;
         a[5]= 0.75;
-        
+
         b[1]= 0.25;
         b[2]= 0.1;
         b[3]= 0.1;
@@ -1214,8 +1230,8 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         biTable.getModel().setValueAt(new Double(b[2]), 1, 0);
         biTable.getModel().setValueAt(new Double(b[3]), 2, 0);
         biTable.getModel().setValueAt(new Double(b[4]), 3, 0);
-        biTable.getModel().setValueAt(new Double(b[5]), 4, 0);        
-        
+        biTable.getModel().setValueAt(new Double(b[5]), 4, 0);
+
         /*
          * ECG Animate parameters
          */
@@ -1244,7 +1260,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
 
         zoomInButton.setEnabled(false);
         zoomOutButton.setEnabled(false);
-        
+
         startAnimateButton.setEnabled(false);
     }
 
@@ -1262,7 +1278,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         zoomOutButton.setEnabled(true);
 
         stopAnimateButton.setEnabled(false);
-    }    
+    }
 
     /*
      * Enable the buttons after generating the ecg Data.
@@ -1278,7 +1294,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
     private void resetButtons(){
         stopAnimateButton.setEnabled(false);
         startAnimateButton.setEnabled(false);
-        exportButton.setEnabled(false);        
+        exportButton.setEnabled(false);
         clearButton.setEnabled(false);
         zoomInButton.setEnabled(false);
         zoomOutButton.setEnabled(false);
@@ -1308,7 +1324,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         resetECG();
         ecgFrame.repaint();
 
-        desktopPane.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));        
+        desktopPane.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
     }//GEN-LAST:event_clearButtonActionPerformed
 
     private void stopAnimateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_stopAnimateButtonActionPerformed
@@ -1366,8 +1382,8 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         // Check the Internal frequency respect to ECG frequency
         if(sfecg_flg && sf_flg){
             if(((int)Math.IEEEremainder(sf, sfecg)) != 0){
-                txtStatus.append("Internal sampling frequency must be an integer multiple of the\n"); 
-                txtStatus.append("ECG sampling frequency!, that currently is = " + sfecg + " Hertz\n"); 
+                txtStatus.append("Internal sampling frequency must be an integer multiple of the\n");
+                txtStatus.append("ECG sampling frequency!, that currently is = " + sfecg + " Hertz\n");
                 RetValue = false;
             }
         }
@@ -1395,7 +1411,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
             txtStatus.append("Exception Error : " + e + "\n");
             RetValue = false;
         }
-        
+
         try {
             seed = Integer.valueOf(txtSeed.getText()).intValue();
         } catch(java.lang.NumberFormatException e){
@@ -1403,7 +1419,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
             txtStatus.append("Exception Error : " + e + "\n");
             RetValue = false;
         }
-       
+
         try {
             amplitude = Double.valueOf(txtAmplitude.getText()).doubleValue();
         } catch(java.lang.NumberFormatException e){
@@ -1572,7 +1588,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
          * ECG Animate parameters
          */
         // convert into miliseconds interval
-        ecgAnimateInterval = (long)(1000/(sfecg));        
+        ecgAnimateInterval = (long)(1000/(sfecg));
 
         if(RetValue){
             txtStatus.append("All parameters are valid!.\n");
@@ -1592,7 +1608,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         boolean RetValue;
 
         txtStatus.append("Starting to generate ECG table data....\n");
-        
+
         ecgCalc Ecg = new ecgCalc();
         RetValue = Ecg.dorun();
 
@@ -1600,7 +1616,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
 
         return(RetValue);
     }
-    
+
     private void generateButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_generateButtonActionPerformed
         desktopPane.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
         paramDialog.hide();
@@ -1610,13 +1626,13 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
          */
         txtStatus.setText(null);
         txtStatus.append("************************************************************\n");
-        txtStatus.append("ECGSYN:\nA program for generating a realistic synthetic ECG\n\n"); 
+        txtStatus.append("ECGSYN:\nA program for generating a realistic synthetic ECG\n\n");
         txtStatus.append("Copyright (c) 2003 by Patrick McSharry & Gari Clifford.\n");
         txtStatus.append("All rights reserved.\n");
         txtStatus.append("See IEEE Transactions On Biomedical Engineering, 50(3),\n289-294, March 2003.\n\n");
         txtStatus.append("Contact:\nP. McSharry (patrick@mcsharry.net)\nG. Clifford (gari@mit.edu)\n");
         txtStatus.append("************************************************************\n\n");
-        txtStatus.append("ECG process started.\n\n");       
+        txtStatus.append("ECG process started.\n\n");
         txtStatus.append("Starting to clear table data and widgets values....\n");
 
         /*
@@ -1643,14 +1659,14 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         if(ecgFunction()){
 
             txtStatus.append("Starting to plot ECG table data....\n");
-            
+
             /*
             * if the # Data Table rows is less than the ecgFrame width, we do not
             * need the scrollbar
             */
             int rows = tableValuesModel.getRowCount();
             if(rows > ecgFrame.getBounds().width){
-                plotScrollBar.setMaximum(rows - ecgFrame.getBounds().width - 1); 
+                plotScrollBar.setMaximum(rows - ecgFrame.getBounds().width - 1);
             }
 
             /*
@@ -1765,7 +1781,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
     // End of variables declaration//GEN-END:variables
 
     private javax.swing.table.DefaultTableModel tableValuesModel;
-    
+
     private ecgPanel ecgFrame;
 
     /*
@@ -1834,7 +1850,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
                     g.drawLine(lastPoint.x, lastPoint.y, x, y);
 
                     /*
-                     * Set the current point to be the last, and 
+                     * Set the current point to be the last, and
                      * get a new point to plot in the following loop.
                      */
                     lastPoint.setLocation(x, y);
@@ -1868,15 +1884,15 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         // Order of extrema: [P Q R S T]
         private double[] ti = new double[6];  /* ti converted in radians             */
         private double[] ai = new double[6];  /* new calculated a                    */
-        private double[] bi = new double[6];  /* new calculated b                    */        
+        private double[] bi = new double[6];  /* new calculated b                    */
 
         private int Necg = 0;                 /*  Number of ECG outputs              */
         private int mstate = 3;               /*  System state space dimension       */
         private double xinitial = 1.0;        /*  Initial x co-ordinate value        */
         private double yinitial = 0.0;        /*  Initial y co-ordinate value        */
         private double zinitial = 0.04;       /*  Initial z co-ordinate value        */
-        private long rseed; 
-        private double h; 
+        private long rseed;
+        private double h;
         private double[] rr, rrpc;
 
         /*
@@ -1888,7 +1904,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         public ecgCalc(){
             /* variables for static function ranq() */
             iy=0;
-            iv = new long[NTAB];                
+            iv = new long[NTAB];
         }
 
         /*--------------------------------------------------------------------------*/
@@ -2013,9 +2029,9 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
                 for(j=1;j<=n;j++){
                    diff = x[j] - mean;
                    total += diff*diff;
-                } 
+                }
                 return (Math.sqrt(total/((double)n-1)));
-        }        
+        }
 
         /*
          * THE ANGULAR FREQUENCY
@@ -2035,7 +2051,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
             double t,dt,dt2,zbase;
             double[] xi, yi;
 
-            k = 5; 
+            k = 5;
             xi = new double[k + 1];
             yi = new double[k + 1];
             w0 = angfreq(t0);
@@ -2045,20 +2061,20 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
             for(i=1; i<=k; i++)
                 xi[i] = Math.cos(ti[i]);
             for(i=1; i<=k; i++)
-                yi[i] = Math.sin(ti[i]);   
+                yi[i] = Math.sin(ti[i]);
 
 
             zbase = 0.005* Math.sin(2.0*PI*fhi*t0);
 
             t = Math.atan2(x[2],x[1]);
             dxdt[1] = a0*(x[1] - x0) - w0*(x[2] - y0);
-            dxdt[2] = a0*(x[2] - y0) + w0*(x[1] - x0); 
-            dxdt[3] = 0.0;  
+            dxdt[2] = a0*(x[2] - y0) + w0*(x[1] - x0);
+            dxdt[3] = 0.0;
 
             for(i=1; i<=k; i++){
               dt = Math.IEEEremainder(t-ti[i], 2.0*PI);
               dt2 = dt*dt;
-              dxdt[3] += -ai[i] * dt * Math.exp(-0.5*dt2/(bi[i]*bi[i])); 
+              dxdt[3] += -ai[i] * dt * Math.exp(-0.5*dt2/(bi[i]*bi[i]));
             }
             dxdt[3] += -1.0*(x[3] - zbase);
         }
@@ -2102,8 +2118,8 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
         /*
          * GENERATE RR PROCESS
          */
-        private void rrprocess(double[] rr, double flo, double fhi, 
-                              double flostd, double fhistd, double lfhfratio,  
+        private void rrprocess(double[] rr, double flo, double fhi,
+                              double flostd, double fhistd, double lfhfratio,
                               double hrmean, double hrstd, double sf, int n)
         {
             int i,j;
@@ -2154,7 +2170,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
 
             ph[n/2+1] = 0.0;
             for(i=1; i<=n/2-1; i++)
-               ph[n-i+1] = - ph0[i]; 
+               ph[n-i+1] = - ph0[i];
 
             /* make complex spectrum */
             for(i=1; i<=n; i++)
@@ -2171,7 +2187,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
                rr[i] = (1.0/(double)n)*SwC[2*i-1];
 
             xstd = stdev(rr,n);
-            ratio = rrstd/xstd; 
+            ratio = rrstd/xstd;
 
             for(i=1; i<=n; i++)
                rr[i] *= ratio;
@@ -2239,19 +2255,19 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
                 else
                     ipeak[i+1] = 5.0;
               }
-              theta1 = theta2; 
+              theta1 = theta2;
             }
 
             /* correct the peaks */
             d = (int)Math.ceil(sfecg/64);
-            for(i=1; i<=n; i++){ 
+            for(i=1; i<=n; i++){
                 if( ipeak[i]==1 || ipeak[i]==3 || ipeak[i]==5 ){
 
                     j1 = (1 > (i-d) ? 1 : (i-d)); //MAX(1,i-d);
                     j2 = (n < (i+d) ? n : (i+d)); //MIN(n,i+d);
                     jmax = j1;
                     zmax = z[j1];
-                    for(j=j1+1;j<=j2;j++){ 
+                    for(j=j1+1;j<=j2;j++){
                         if(z[j] > zmax){
                             jmax = j;
                             zmax = z[j];
@@ -2356,7 +2372,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
             txtStatus.append("T: ["+ bi[5] + "\t]\n\n");
 
             /* Initialise the vector */
-            x[1] = xinitial; 
+            x[1] = xinitial;
             x[2] = yinitial;
             x[3] = zinitial;
 
@@ -2367,22 +2383,22 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
             h = 1.0/(double)sf;
             tstep = 1.0/(double)sfecg;
 
-            /* calculate length of RR time series */            
+            /* calculate length of RR time series */
             rrmean = (60.0/hrmean);
-            Nrr=(int)Math.pow(2.0, Math.ceil(Math.log(N*rrmean*sf)/Math.log(2.0))); 
+            Nrr=(int)Math.pow(2.0, Math.ceil(Math.log(N*rrmean*sf)/Math.log(2.0)));
 
             txtStatus.append("Using " + Nrr + " = 2^ "+ (int)(Math.log(1.0*Nrr)/Math.log(2.0)) + " samples for calculating RR intervals\n");
 
             /* create rrprocess with required spectrum */
             rr = new double[Nrr + 1];
-            rrprocess(rr, flo, fhi, flostd, fhistd, lfhfratio, hrmean, hrstd, sf, Nrr); 
+            rrprocess(rr, flo, fhi, flostd, fhistd, lfhfratio, hrmean, hrstd, sf, Nrr);
 
             /* create piecewise constant rr */
             rrpc = new double[(2*Nrr) + 1];
             tecg = 0.0;
             i = 1;
             j = 1;
-            while(i <= Nrr){  
+            while(i <= Nrr){
               tecg += rr[j];
               j = (int) Math.rint(tecg/h);
               for(k=i; k<=j; k++)
@@ -2410,7 +2426,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
             zts = new double[Nt + 1];
 
             j=0;
-            for(i=1; i<=Nt; i+=q){ 
+            for(i=1; i<=Nt; i+=q){
               j++;
               xts[j] = xt[i];
               yts[j] = yt[i];
@@ -2449,7 +2465,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
                 nuevoRow.addElement(new String(Double.toString((i-1)*tstep)));
                 nuevoRow.addElement(new String(Double.toString(zts[i])));
                 nuevoRow.addElement(new String(Integer.toString((int)ipeak[i])));
-                tableValuesModel.addRow(nuevoRow);                
+                tableValuesModel.addRow(nuevoRow);
             }
 
             txtStatus.append("Finished inserting (" + i + ") rows.\n");
@@ -2520,7 +2536,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
             } else{
                 ecgAnimateLastPoint.setLocation(x, y);
                 x = (int)(Double.valueOf(tableValues.getValueAt(ecgAnimateCurRow, 0).toString()).doubleValue() / plotZoom) - ecgAnimateInitialZero;
-                y = posOriginY - (int)(Double.valueOf(tableValues.getValueAt(ecgAnimateCurRow, 1).toString()).doubleValue() * frameAmplitude / amplitude);                
+                y = posOriginY - (int)(Double.valueOf(tableValues.getValueAt(ecgAnimateCurRow, 1).toString()).doubleValue() * frameAmplitude / amplitude);
             }
         }
     }
@@ -2529,7 +2545,7 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
      * class for verifying that the value of JtextField is a double number
      */
     class doubleVerifier extends InputVerifier{
-        
+
         public boolean verify(JComponent input) {
             JTextField textF = (JTextField) input;
             double dNumber;
@@ -2550,9 +2566,9 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
 
     /*
      * class for verifying that the value of JtextField is an integer number
-     */    
+     */
     class integerVerifier extends InputVerifier{
-        
+
         public boolean verify(JComponent input) {
             JTextField textF = (JTextField) input;
             int dNumber;
@@ -2573,9 +2589,9 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
 
     /*
      * class for verifying the value of the ECG Sampling frequency
-     */    
+     */
     class sfecgVerifier extends InputVerifier{
-        
+
         public boolean verify(JComponent input) {
             JTextField textF = (JTextField) input;
             int dNumber;
@@ -2597,9 +2613,9 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
 
     /*
      * class for verifying the value of the Internal Sampling frequency
-     */    
+     */
     class sfVerifier extends InputVerifier{
-        
+
         public boolean verify(JComponent input) {
             JTextField textF = (JTextField) input;
             int dNumber;
@@ -2672,3 +2688,4 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
     }
 
 }
+/* end of reference 2 */

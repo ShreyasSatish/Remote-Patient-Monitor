@@ -16,15 +16,19 @@ public final class AddPatientPanel extends VBox {
         setSpacing(10);
         setPadding(new Insets(12));
 
+        // Panel title
         Label title = new Label("Add patient");
         title.getStyleClass().add("panel-title");
 
+        // Patient name input
         TextField name = new TextField();
         name.setPromptText("Name");
 
+        // Age selector (currently only used for display/logging)
         Spinner<Integer> age = new Spinner<>(0, 120, 30);
         age.setEditable(true);
 
+        // Condition dropdown shown to the user
         ComboBox<String> condition = new ComboBox<>();
         condition.getItems().addAll(
                 "Healthy",
@@ -36,14 +40,18 @@ public final class AddPatientPanel extends VBox {
         );
         condition.setValue("Healthy");
 
+        // Button to create and add a new patient
         Button add = new Button("Add patient");
-        add.getStyleClass().add("banner-btn"); // or create "primary-btn"
+        add.getStyleClass().add("banner-btn"); // could be replaced with a dedicated primary style later
         add.setMaxWidth(Double.MAX_VALUE);
 
         add.setOnAction(e -> {
+
+            // Read and sanitize the label entered by the user
             String label = name.getText().trim();
             if (label.isEmpty()) label = "Patient";
 
+            // Build the set of chronic conditions based on dropdown selection
             EnumSet<ChronicCondition> conditions = EnumSet.noneOf(ChronicCondition.class);
 
             String c = condition.getValue();
@@ -68,19 +76,23 @@ public final class AddPatientPanel extends VBox {
                         conditions.add(ChronicCondition.INFECTION_RISK);
                         break;
                     default:
+                        // "Healthy" or unsupported option results in no chronic conditions
                         break;
                 }
             }
 
+            // Add the patient to the ward
             PatientId added = ctx.ward.addPatient(label, conditions);
 
+            // Log the newly added patient for debugging
             System.out.println("Added " + added.getDisplayName()
                     + " | name=" + label
                     + " | age=" + age.getValue()
                     + " | condition=" + c);
         });
 
-        getChildren().addAll(title,
+        getChildren().addAll(
+                title,
                 new Label("Name:"), name,
                 new Label("Age:"), age,
                 new Label("Condition:"), condition,
@@ -88,5 +100,3 @@ public final class AddPatientPanel extends VBox {
         );
     }
 }
-
-

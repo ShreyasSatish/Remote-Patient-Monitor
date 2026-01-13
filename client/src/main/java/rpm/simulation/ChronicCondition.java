@@ -1,5 +1,6 @@
 package rpm.simulation;
 
+// Represents long-term patient conditions that influence vital behaviour
 public enum ChronicCondition {
     HYPERTENSION,
     COPD_TENDENCY,

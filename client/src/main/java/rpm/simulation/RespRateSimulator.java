@@ -4,10 +4,8 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Random;
 
-/**
- * Simulates respiratory rate (breaths per minute) using a random-walk model around a baseline.
- */
 public class RespRateSimulator implements VitalSimulator {
+
     private final Random random;
     private final double baselineRespPerMin;
     private final double minRespPerMin;
@@ -19,11 +17,16 @@ public class RespRateSimulator implements VitalSimulator {
         this(16.0, 12.0, 20.0, new Random());
     }
 
-    public RespRateSimulator(double baselineRespPerMin, double minRespPerMin, double maxRespPerMin) {
+    public RespRateSimulator(double baselineRespPerMin,
+                             double minRespPerMin,
+                             double maxRespPerMin) {
         this(baselineRespPerMin, minRespPerMin, maxRespPerMin, new Random());
     }
 
-    public RespRateSimulator(double baselineRespPerMin, double minRespPerMin, double maxRespPerMin, Random random) {
+    public RespRateSimulator(double baselineRespPerMin,
+                             double minRespPerMin,
+                             double maxRespPerMin,
+                             Random random) {
         this.random = Objects.requireNonNull(random, "random");
         this.baselineRespPerMin = baselineRespPerMin;
         this.minRespPerMin = minRespPerMin;
@@ -31,14 +34,17 @@ public class RespRateSimulator implements VitalSimulator {
         this.currentRespPerMin = baselineRespPerMin;
     }
 
-    // Step time and find new values of respiratory rate
     @Override
     public double nextValue(Instant time) {
+        // Small random variation each step
         double randomStep = random.nextGaussian() * 0.4;
+
+        // Pull the value gently back toward the baseline
         double pullToBaseline = (baselineRespPerMin - currentRespPerMin) * 0.08;
 
         currentRespPerMin = currentRespPerMin + randomStep + pullToBaseline;
 
+        // Fix the value within configured limits
         if (currentRespPerMin < minRespPerMin) {
             currentRespPerMin = minRespPerMin;
         } else if (currentRespPerMin > maxRespPerMin) {

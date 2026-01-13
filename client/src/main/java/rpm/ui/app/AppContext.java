@@ -6,6 +6,12 @@ import rpm.simulation.WardManager;
 import rpm.domain.alarm.AlarmService;
 
 public final class AppContext {
+
+    /*
+    - Central container that holds shared application services.
+    - Passed around so UI components can access the same state and systems.
+    */
+
     public final WardManager ward;
     public final AlarmService alarms;
     public final InMemoryPatientDataStore store;
@@ -13,7 +19,6 @@ public final class AppContext {
     public final Session session;
     public final UISettings settings;
     public final SimulationClock clock;
-
 
     public AppContext(WardManager ward,
                       AlarmService alarms,
@@ -29,6 +34,5 @@ public final class AppContext {
         this.session = session;
         this.settings = settings;
         this.clock = clock;
-
     }
 }

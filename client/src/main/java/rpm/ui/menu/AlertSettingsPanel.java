@@ -16,15 +16,21 @@ public final class AlertSettingsPanel extends VBox {
         setSpacing(8);
         setPadding(new Insets(12));
 
+        // Panel title
         Label title = new Label("Alert");
         title.getStyleClass().add("panel-title");
 
+        // Dropdown for choosing how alerts are presented (visual only vs audio + visual)
         ComboBox<AlertPreference> pref = new ComboBox<>();
         pref.getItems().addAll(
                 AlertPreference.VISUAL_ONLY,
                 AlertPreference.AUDIO_AND_VISUAL
         );
+
+        // Initialize with the current user setting
         pref.setValue(ctx.settings.getAlertPreference());
+
+        // Convert enum values into user-friendly labels in the dropdown
         pref.setConverter(new javafx.util.StringConverter<AlertPreference>() {
             @Override
             public String toString(AlertPreference p) {
@@ -41,13 +47,16 @@ public final class AlertSettingsPanel extends VBox {
 
             @Override
             public AlertPreference fromString(String s) {
-                return null;
+                return null; // not needed for this UI
             }
         });
+
+        // Save the selected alert preference back into settings
         pref.valueProperty().addListener((obs, oldV, newV) -> {
             if (newV != null) ctx.settings.setAlertPreference(newV);
         });
 
+        // Dropdown for choosing how long alerts remain active
         ComboBox<AlertDuration> dur = new ComboBox<>();
         dur.getItems().addAll(
                 AlertDuration.SEC_10,
@@ -55,7 +64,11 @@ public final class AlertSettingsPanel extends VBox {
                 AlertDuration.MIN_1,
                 AlertDuration.UNTIL_RESOLVED
         );
+
+        // Initialize with the current duration setting
         dur.setValue(ctx.settings.getAlertDuration());
+
+        // Convert enum values into readable labels for display
         dur.setConverter(new javafx.util.StringConverter<AlertDuration>() {
             @Override
             public String toString(AlertDuration d) {
@@ -76,13 +89,16 @@ public final class AlertSettingsPanel extends VBox {
 
             @Override
             public AlertDuration fromString(String s) {
-                return null;
+                return null; // not needed for this UI
             }
         });
+
+        // Save the selected alert duration back into settings
         dur.valueProperty().addListener((obs, oldV, newV) -> {
             if (newV != null) ctx.settings.setAlertDuration(newV);
         });
 
+        // Layout rows for the two settings
         HBox row1 = new HBox(10, new Label("Type:"), pref);
         HBox row2 = new HBox(10, new Label("Duration:"), dur);
 

@@ -4,10 +4,12 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.Random;
 
-/**
- * Simulates arterial blood pressure. Tracks systolic and diastolic internally.
+/*
+ * Simulates arterial blood pressure.
+ * Internally tracks both systolic and diastolic values.
  */
 public class BloodPressureSimulator implements VitalSimulator {
+
     private final Random random;
     private final double baselineSystolic;
     private final double baselineDiastolic;
@@ -21,7 +23,10 @@ public class BloodPressureSimulator implements VitalSimulator {
         this(120.0, 80.0, 90.0, 140.0, new Random());
     }
 
-    public BloodPressureSimulator(double baselineSystolic, double baselineDiastolic, double minSystolic, double maxSystolic) {
+    public BloodPressureSimulator(double baselineSystolic,
+                                  double baselineDiastolic,
+                                  double minSystolic,
+                                  double maxSystolic) {
         this(baselineSystolic, baselineDiastolic, minSystolic, maxSystolic, new Random());
     }
 
@@ -41,24 +46,27 @@ public class BloodPressureSimulator implements VitalSimulator {
 
     @Override
     public double nextValue(Instant time) {
-        // Step the Blood Pressure value
+        // Advance the simulated blood pressure value
 
         double randomStep = random.nextGaussian() * 2.0;
-        // Pull the blood pressure slightly back to "normal" value
+
+        // Pull the systolic value gently back toward the baseline
         double pullToBaseline = (baselineSystolic - currentSystolic) * 0.05;
 
         currentSystolic = currentSystolic + randomStep + pullToBaseline;
 
-        // Change max and min systolic values
+        // Clamp systolic pressure to configured limits
         if (currentSystolic < minSystolic) {
             currentSystolic = minSystolic;
         } else if (currentSystolic > maxSystolic) {
             currentSystolic = maxSystolic;
         }
 
-        // Update diastolic pressure
-        double targetDiastolic = baselineDiastolic + (currentSystolic - baselineSystolic) * 0.5;
-        // Add some noise to prevent 'perfect' relationship
+        // Estimate diastolic pressure based on systolic movement
+        double targetDiastolic =
+                baselineDiastolic + (currentSystolic - baselineSystolic) * 0.5;
+
+        // Add noise to avoid a perfectly fixed relationship
         double diastolicNoise = random.nextGaussian() * 1.5;
         currentDiastolic = targetDiastolic + diastolicNoise;
 

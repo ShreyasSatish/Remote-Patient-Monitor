@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-//This class sends telemetry data every 10 seconds, (POSTS to the servelt)
+//This class sends telemetry data every 10 seconds, (POSTS to the servlet)
 
 public class TelemetryService {
 

@@ -22,8 +22,6 @@ public final class AlarmConfig {
     public static AlarmConfig defaultAdult() {
         AlarmConfig c = new AlarmConfig();
 
-        // NOTE: these are kinda based on intial research for now. can make them adjustable once UI is looking good.
-        // - sohani
         // HR (bpm)
         c.bands.put(VitalType.HEART_RATE, new ThresholdBand(
                 50, 40,   // low amber, low red

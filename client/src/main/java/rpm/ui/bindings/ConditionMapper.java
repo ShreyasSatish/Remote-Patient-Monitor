@@ -5,11 +5,10 @@ import rpm.simulation.ChronicCondition;
 import java.util.EnumSet;
 import java.util.List;
 
-// Internal class to convert readable string representations of medical conditions
-// into internal 'ChronicCondition' emun types
+// Converts human-readable condition strings into internal ChronicCondition values.
 public final class ConditionMapper {
 
-    // Convert strings into 'ChronicCondition' enums
+    // Convert a list of strings into a set of ChronicCondition values
     public static EnumSet<ChronicCondition> fromStrings(List<String> input) {
         EnumSet<ChronicCondition> set = EnumSet.noneOf(ChronicCondition.class);
         if (input == null) return set;
@@ -21,9 +20,10 @@ public final class ConditionMapper {
         return set;
     }
 
-    // Mapping of single string to 'ChronicCondition' enum
+    // Map a single string value to a ChronicCondition value
     private static ChronicCondition mapOne(String s) {
         if (s == null) return null;
+
         switch (s.toLowerCase()) {
             case "copd": return ChronicCondition.COPD_TENDENCY;
             case "bradycardia": return ChronicCondition.BRADYCARDIA_TENDENCY;
@@ -31,10 +31,11 @@ public final class ConditionMapper {
             case "heart failure risk": return ChronicCondition.HEART_FAILURE_RISK;
             case "infection risk": return ChronicCondition.INFECTION_RISK;
             case "arrhythmia": return ChronicCondition.ARRHYTHMIA_TENDENCY;
-            default: return null; // "Healthy" or unknown
+            default:
+                return null; // "Healthy" or unknown values
         }
     }
 
-    // Prevent instantiation of this class with private constructor
+    // Utility class – prevent instantiation
     private ConditionMapper() {}
 }
