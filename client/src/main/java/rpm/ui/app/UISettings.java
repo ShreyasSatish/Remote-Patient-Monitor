@@ -10,7 +10,7 @@ public final class UISettings {
 
 
     private AlertPreference alertPreference = AlertPreference.VISUAL_ONLY;
-    private AlertDuration alertDuration = AlertDuration.SEC_10;
+    private AlertDuration alertDuration = AlertDuration.UNTIL_RESOLVED;
 
     public UISettings() {}
 
