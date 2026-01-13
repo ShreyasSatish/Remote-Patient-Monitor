@@ -60,6 +60,7 @@ public final class AlertOverlayView extends StackPane {
         this.onResolveAll = r != null ? r : () -> {};
     }
 
+    // Display alerts on the UI
     public void showAlerts(List<AlertPopupItem> items, boolean showResolveButtons) {
         list.getChildren().clear();
 

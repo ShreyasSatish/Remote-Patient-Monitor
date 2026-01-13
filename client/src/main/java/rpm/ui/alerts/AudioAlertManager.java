@@ -24,7 +24,7 @@ public final class AudioAlertManager {
         this.clip.setCycleCount(AudioClip.INDEFINITE);
     }
 
-
+    // Start audio alert for certian duration
     public void startFor(long nowMs) {
         if (clip == null) return;
         if (settings.getAlertPreference() != AlertPreference.AUDIO_AND_VISUAL) return;
@@ -35,6 +35,7 @@ public final class AudioAlertManager {
         stopAtMs = (d == null) ? Long.MAX_VALUE : (nowMs + d.toMillis());
     }
 
+    // Tick time for audio alert
     public void tick(long nowMs) {
         if (clip == null) return;
         if (clip.isPlaying() && nowMs >= stopAtMs) clip.stop();

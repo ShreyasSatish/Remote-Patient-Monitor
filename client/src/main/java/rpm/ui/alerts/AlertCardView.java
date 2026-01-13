@@ -9,6 +9,8 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import rpm.ui.bindings.VitalDisplay;
 
+// UI component for a single patient card in dashboard
+// Displays vital signs and flashes red during a medical event
 public final class AlertCardView extends VBox {
 
     private final Label title = new Label();
@@ -36,12 +38,14 @@ public final class AlertCardView extends VBox {
         getChildren().addAll(title, hr, rr, bp, temp, resolve);
     }
 
+    // Assigns action to perform when "Resolve" button clicked
     public void setResolveHandler(ResolveHandler handler) {
         resolve.setOnAction(e -> {
             if (handler != null) handler.onResolve();
         });
     }
 
+    // Updates UI with new data from simulation
     public void setModel(AlertTileModel t) {
         title.setText(t.name + " (" + t.id.getDisplayName() + ")");
         hr.setText("HR: " + VitalDisplay.fmt1(t.hr) + " bpm");
@@ -56,6 +60,7 @@ public final class AlertCardView extends VBox {
         else stopFlashAndReset();
     }
 
+    // Starts flashing animation loop
     private void startFlash() {
         if (flasher != null) return;
         flasher = new Timeline(new KeyFrame(Duration.millis(400), e -> {
@@ -66,6 +71,7 @@ public final class AlertCardView extends VBox {
         flasher.play();
     }
 
+    // Stops animation loop and resets to normal style
     private void stopFlashAndReset() {
         if (flasher != null) {
             flasher.stop();
@@ -75,10 +81,12 @@ public final class AlertCardView extends VBox {
         setStyle(baseStyle());
     }
 
+    // CSS for normal style
     private static String baseStyle() {
         return "-fx-border-color: #cccccc; -fx-border-radius: 10; -fx-background-radius: 10;";
     }
 
+    // CSS for alert style
     private static String alertStyle() {
         return "-fx-border-color: red; -fx-border-radius: 10; -fx-background-radius: 10; -fx-background-color: #ffcccc;";
     }
