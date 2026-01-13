@@ -13,6 +13,7 @@ public class TelemetryServlet extends HttpServlet {
 
     @Override
     public void init() {
+
         store = TelemetryStores.create();
     }
 
@@ -82,4 +83,8 @@ public class TelemetryServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         resp.getWriter().write(body);
     }
+
+
+
+
 }
