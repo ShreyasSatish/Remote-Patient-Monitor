@@ -15,6 +15,7 @@ import rpm.simulation.WardManager;
 
 import java.time.Duration;
 
+// Main class to run the UI
 public final class RpmApp extends Application {
 
     private Timeline telemetryTimeline;

@@ -25,6 +25,7 @@ public final class Router {
     private final AppContext ctx;
     private final AppShell shell;
 
+    // Handle switching between different scenes/screens of the application
     public Router(Stage stage, AppContext ctx) {
         this.stage = stage;
         this.ctx = ctx;
@@ -46,6 +47,7 @@ public final class Router {
         shell.setContent(content);
     }
 
+    // Change view to login screen
     public void showLogin() {
         stage.setTitle("RPM - Login");
         shell.setTop(null);
@@ -81,7 +83,7 @@ public final class Router {
         setContent(bg);
     }
 
-
+    // Build the top bar of the login
     private Node buildLoginTopBar() {
         HBox bar = new HBox();
         bar.getStyleClass().add("top-banner"); // reuse same look
@@ -98,6 +100,7 @@ public final class Router {
     }
 
 
+    // Change view to main dashboard
     public void showDashboard() {
         stage.setTitle("RPM - Dashboard");
         shell.setTop(shell.getBanner());
@@ -107,7 +110,7 @@ public final class Router {
         updateBannerUser();
     }
 
-
+    // Change view to detailed view of a patient
     public void showPatientDetail(PatientId id) {
         stage.setTitle("RPM - Patient " + id.getDisplayName());
         shell.setTop(shell.getBanner());
@@ -115,6 +118,7 @@ public final class Router {
         setContent(new PatientDetailView(ctx, this, id));
     }
 
+    // Change to show settings page
     public void showSettings() {
         stage.setTitle("RPM - Settings");
         shell.setTop(shell.getBanner());
