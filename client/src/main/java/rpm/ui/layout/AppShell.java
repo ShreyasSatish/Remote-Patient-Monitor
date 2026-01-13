@@ -23,10 +23,11 @@ public final class AppShell extends BorderPane {
     private final Timeline alertTick;
     private boolean alertsEnabled = true;
 
+
     public AppShell(AppContext ctx, Router router) {
         this.banner = new TopBanner(ctx, router);
 
-        getStyleClass().add("app-shell");
+        getStyleClass().add("app-bg");
         stack.getStyleClass().add("app-bg");
         contentPane.getStyleClass().add("app-bg");
 

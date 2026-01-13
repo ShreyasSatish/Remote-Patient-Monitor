@@ -267,3 +267,76 @@
     -fx-background-color: rgba(85,191,241,0.22); /* uses your light blue #55bff1 */
     -fx-text-fill: -rancho-blue;
 }
+
+/* ---------- Settings + patient detail panels ---------- */
+
+.panel-card {
+    -fx-background-color: white;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: rgba(39,40,39,0.08);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 22, 0.12, 0, 8);
+    -fx-padding: 12;
+}
+
+.panel-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 900;
+    -fx-text-fill: -rancho-charcoal;
+}
+
+.settings-card {
+    -fx-background-color: white;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: rgba(39,40,39,0.08);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 22, 0.12, 0, 8);
+    -fx-padding: 12;
+}
+
+.patient-sidebar {
+    -fx-background-color: rgba(85,191,241,0.22); /* solid-ish, not gradient */
+    -fx-padding: 16;
+}
+.patient-sidebar .label {
+    -fx-text-fill: rgba(39,40,39,0.85);
+    -fx-font-weight: 700;
+}
+.patient-vital {
+    -fx-font-size: 18px;
+    -fx-font-weight: 900;
+    -fx-text-fill: -rancho-charcoal;
+}
+.primary-btn {
+    -fx-background-color: -rancho-blue;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+    -fx-background-radius: 12;
+    -fx-padding: 12 14 12 14;
+}
+.primary-btn:hover { -fx-background-color: -rancho-blue2; }
+
+/* Context menu styling (power dropdown) */
+.context-menu {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.14), 18, 0.15, 0, 8);
+    -fx-border-color: rgba(39,40,39,0.08);
+    -fx-border-radius: 12;
+}
+
+.menu-item {
+    -fx-padding: 10 14 10 14;
+    -fx-background-radius: 10;
+}
+
+.menu-item:focused {
+    -fx-background-color: rgba(17,98,170,0.12);
+}
+
+.menu-item .label {
+    -fx-font-weight: 800;
+}
+

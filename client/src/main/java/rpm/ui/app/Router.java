@@ -25,13 +25,17 @@ public final class Router {
         this.shell = new AppShell(ctx, this);
 
         Scene scene = new Scene(shell, 1100, 750);
+
         var cssUrl = Router.class.getResource("/rpm/ui/theme/rancho.css");
         if (cssUrl != null) {
             scene.getStylesheets().add(cssUrl.toExternalForm());
+        } else {
+            System.out.println("WARN: rancho.css not found on classpath");
         }
 
         stage.setScene(scene);
     }
+
 
     private void setContent(Node content) {
         shell.setContent(content);
@@ -46,26 +50,23 @@ public final class Router {
 
         StackPane bg = new StackPane(card);
         bg.getStyleClass().add("login-bg");
-        bg.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
         StackPane.setAlignment(card, Pos.CENTER);
         StackPane.setMargin(card, new Insets(24));
 
         setContent(bg);
     }
 
+
     public void showDashboard() {
         stage.setTitle("RPM - Dashboard");
         shell.setTop(shell.getBanner());
         shell.setAlertsEnabled(true);
-        setContent(new DashboardView(ctx, this, shell.getBanner()));
 
-        if (ctx.session.isLoggedIn()) {
-            NurseUser u = ctx.session.getUser();
-            shell.getBanner().setUserText(u.getName() + " (" + u.getUsername() + ")");
-        } else {
-            shell.getBanner().setUserText("");
-        }
+        setContent(new DashboardView(ctx, this, shell.getBanner()));
+        updateBannerUser();
     }
+
 
     public void showPatientDetail(PatientId id) {
         stage.setTitle("RPM - Patient " + id.getDisplayName());
@@ -74,11 +75,21 @@ public final class Router {
         setContent(new PatientDetailView(ctx, this, id));
     }
 
-    public void showMenu() {
-        stage.setTitle("RPM - Menu");
+    public void showSettings() {
+        stage.setTitle("RPM - Settings");
         shell.setTop(shell.getBanner());
         shell.setAlertsEnabled(true);
-        setContent(new MenuView(ctx, this));
+        setContent(new rpm.ui.menu.MenuView(ctx, this));
+
+        updateBannerUser();
+        /**
+        stage.setTitle("RPM - Patient " + id.getDisplayName());
+        shell.setTop(shell.getBanner());
+        shell.setAlertsEnabled(true);
+
+        setContent(new PatientDetailView(ctx, this, id));
+        updateBannerUser();
+         **/ // this is the new code
     }
 
     public void logout() {
@@ -93,5 +104,14 @@ public final class Router {
     public void restartAppUiOnly() {
         ctx.settings.resetDefaults();
         showDashboard();
+    }
+
+    private void updateBannerUser() {
+        if (ctx.session.isLoggedIn()) {
+            NurseUser u = ctx.session.getUser();
+            shell.getBanner().setUserText(u.getName() + " (" + u.getUsername() + ")");
+        } else {
+            shell.getBanner().setUserText("");
+        }
     }
 }

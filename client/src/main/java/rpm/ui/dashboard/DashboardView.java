@@ -21,8 +21,9 @@ public final class DashboardView extends BorderPane {
     public DashboardView(AppContext ctx, Router router, TopBanner banner) {
         this.ctx = ctx;
 
-        this.grid = new PatientGridView();
+        getStyleClass().add("app-bg");
 
+        this.grid = new PatientGridView();
         this.controller = new DashboardController(ctx, router, grid, banner);
 
         setCenter(grid);

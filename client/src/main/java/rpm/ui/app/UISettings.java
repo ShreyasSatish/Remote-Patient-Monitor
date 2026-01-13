@@ -5,8 +5,8 @@ public final class UISettings {
 
     private int patientsPerScreen = 4;
 
-    private boolean rotationEnabled = false;
-    private int rotationSeconds = 10;
+    private boolean rotationEnabled = true;
+    private int rotationSeconds = 5;
 
 
     private AlertPreference alertPreference = AlertPreference.VISUAL_ONLY;
@@ -56,10 +56,10 @@ public final class UISettings {
 
     public void resetDefaults() {
         patientsPerScreen = 4;
-        rotationEnabled = false;
-        rotationSeconds = 10;
+        rotationEnabled = true;
+        rotationSeconds = 5;
         alertPreference = AlertPreference.VISUAL_ONLY;
-        alertDuration = AlertDuration.SEC_10;
+        alertDuration = AlertDuration.UNTIL_RESOLVED;
     }
 
     private static int clamp(int v, int lo, int hi) {

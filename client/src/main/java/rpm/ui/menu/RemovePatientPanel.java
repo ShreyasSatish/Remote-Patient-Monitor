@@ -15,23 +15,24 @@ public final class RemovePatientPanel extends VBox {
     private final ComboBox<PatientId> selector = new ComboBox<>();
 
     public RemovePatientPanel(AppContext ctx) {
+
+        getStyleClass().add("panel-card");
         setSpacing(8);
         setPadding(new Insets(12));
-        setStyle(
-                "-fx-border-color: #cccccc;" +
-                        "-fx-border-radius: 10;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-background-color: white;"
-        );
 
-
-        Label title = new Label("Remove patient");
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
+        Label title = new Label("View");
+        title.getStyleClass().add("panel-title");
 
         refreshIds(ctx);
 
         Button refresh = new Button("Refresh list");
+        refresh.getStyleClass().add("banner-btn"); // or create "primary-btn"
+        refresh.setMaxWidth(Double.MAX_VALUE);
         refresh.setOnAction(e -> refreshIds(ctx));
+
+        Button add = new Button("Add patient");
+        add.getStyleClass().add("banner-btn"); // or create "primary-btn"
+        add.setMaxWidth(Double.MAX_VALUE);
 
         Button remove = new Button("Remove selected");
         remove.setOnAction(e -> {
