@@ -26,15 +26,17 @@ public final class RemovePatientPanel extends VBox {
         refreshIds(ctx);
 
         Button refresh = new Button("Refresh list");
-        refresh.getStyleClass().add("banner-btn"); // or create "primary-btn"
+        refresh.getStyleClass().add("banner-btn");
         refresh.setMaxWidth(Double.MAX_VALUE);
         refresh.setOnAction(e -> refreshIds(ctx));
 
         Button add = new Button("Add patient");
-        add.getStyleClass().add("banner-btn"); // or create "primary-btn"
+        add.getStyleClass().add("banner-btn");
         add.setMaxWidth(Double.MAX_VALUE);
 
         Button remove = new Button("Remove selected");
+        remove.getStyleClass().add("btn-soft");
+        remove.setMaxWidth(Double.MAX_VALUE);
         remove.setOnAction(e -> {
             PatientId id = selector.getValue();
             if (id == null) return;

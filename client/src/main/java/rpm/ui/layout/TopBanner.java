@@ -14,6 +14,15 @@ import javafx.scene.layout.Region;
 import rpm.ui.app.AppContext;
 import rpm.ui.app.Router;
 
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import rpm.domain.PatientId;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
+
 public final class TopBanner extends HBox {
 
     private static final String LOGO_RESOURCE = "/rpm/ui/assets/rancho-logo.png";
@@ -23,6 +32,7 @@ public final class TopBanner extends HBox {
     private final TextField searchField = new TextField();
     private final Button settingsBtn = new Button("Settings");
     private final Button powerBtn = new Button("⏻");
+    private final ContextMenu searchMenu = new ContextMenu();
 
     public TopBanner(AppContext ctx, Router router) {
         getStyleClass().add("top-banner");
@@ -45,6 +55,52 @@ public final class TopBanner extends HBox {
         searchField.setPromptText("Search patient / bed…");
         searchField.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(searchField, Priority.ALWAYS);
+
+        searchMenu.setAutoHide(true);
+
+        searchField.textProperty().addListener((obs, oldV, newV) -> {
+            String q = (newV == null) ? "" : newV.trim().toLowerCase();
+            if (q.isEmpty()) {
+                searchMenu.hide();
+                return;
+            }
+
+            var matches = ctx.ward.getPatientIds().stream()
+                    .map(id -> {
+                        var card = ctx.ward.getPatientCard(id);
+                        String label = (card != null && card.getLabel() != null) ? card.getLabel() : "Patient";
+                        String bed = id.getDisplayName();              // "Bed 04"
+                        String full = bed + " • " + label;             // shown in dropdown
+                        String hay = (bed + " " + label).toLowerCase();
+                        return new Object[]{id, full, hay};
+                    })
+                    .filter(arr -> ((String)arr[2]).contains(q))
+                    .limit(8)
+                    .toList();
+
+            if (matches.isEmpty()) {
+                searchMenu.hide();
+                return;
+            }
+
+            searchMenu.getItems().clear();
+            for (var m : matches) {
+                var id = (rpm.domain.PatientId)m[0];
+                var text = (String)m[1];
+                var item = new javafx.scene.control.MenuItem(text);
+                item.setOnAction(e -> {
+                    searchMenu.hide();
+                    searchField.clear();
+                    router.showPatientDetail(id);
+                });
+                searchMenu.getItems().add(item);
+            }
+
+            if (!searchMenu.isShowing()) {
+                searchMenu.show(searchField, javafx.geometry.Side.BOTTOM, 0, 0);
+            }
+        });
+
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);

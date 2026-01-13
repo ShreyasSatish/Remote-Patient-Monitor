@@ -27,7 +27,7 @@ public final class MenuView extends BorderPane {
 
         HBox content = new HBox(15, left, right);
         content.setPadding(new Insets(16));
-        content.getStyleClass().add("app-bg");   // background here
+        content.getStyleClass().add("patient");   // background here
 
         HBox.setHgrow(left, Priority.ALWAYS);
         HBox.setHgrow(right, Priority.ALWAYS);

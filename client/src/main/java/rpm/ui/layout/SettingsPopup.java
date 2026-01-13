@@ -1,5 +1,8 @@
 package rpm.ui.layout;
 
+import javafx.application.Platform;
+import javafx.geometry.Side;
+import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Control;
@@ -25,4 +28,13 @@ public final class SettingsPopup {
     }
 
     private SettingsPopup() {}
+
+    public static void showLoginOnlyPowerOff(Button anchor) {
+        MenuItem powerOff = new MenuItem("Power off");
+        powerOff.setOnAction(e -> Platform.exit());
+
+        ContextMenu menu = new ContextMenu(powerOff);
+        menu.show(anchor, Side.BOTTOM, 0, 0);
+    }
+
 }

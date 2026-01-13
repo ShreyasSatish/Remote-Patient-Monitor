@@ -72,20 +72,6 @@ public class WardManager {
         return cards.get(id);
     }
 
-    /**
-    public synchronized PatientId addPatient() {
-        return addPatientInternal(Instant.now());
-        // String label, List<String> conditions - to go in addPatient later
-    }
-
-
-    public synchronized PatientId addPatient(String label, EnumSet<ChronicCondition> conditions) {
-        PatientId id = addPatientInternal(Instant.now());
-        cards.put(id, new PatientCard(id, label, conditions));
-        return id;
-    }
-
-     **/
 
     public synchronized PatientId addPatient(String label, EnumSet<ChronicCondition> conditions) {
         PatientId id = addPatientInternal(Instant.now());

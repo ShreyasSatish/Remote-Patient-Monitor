@@ -104,14 +104,12 @@ public final class DashboardController {
 
     private long nowMs() { return ctx.clock.getSimTime().toEpochMilli(); }
 
-
     public void resolve(PatientId id) {
         long nowMs = ctx.clock.getSimTime().toEpochMilli();
 
         acknowledger.acknowledge(id, AlertRules.resolveCooldown(ctx), nowMs);
         renderPage();
     }
-
 
     private List<PatientId> alertingPatients(long nowMs) {
         return ctx.ward.getPatientIds().stream()
@@ -122,7 +120,6 @@ public final class DashboardController {
                 })
                 .collect(Collectors.toList());
     }
-
 
     private PatientTileModel buildTile(PatientId id) {
         VitalSnapshot snap = ctx.ward.getPatientLatestSnapshot(id);
@@ -143,8 +140,6 @@ public final class DashboardController {
 
         return PatientTileModel.from(id, name, snap, alerting, showResolve);
     }
-
-
 
     private int pageCount(int perScreen, int total) {
         if (total <= 0) return 1;

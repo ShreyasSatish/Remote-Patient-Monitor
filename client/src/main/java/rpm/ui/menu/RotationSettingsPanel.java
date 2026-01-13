@@ -16,7 +16,7 @@ public final class RotationSettingsPanel extends VBox {
         setSpacing(8);
         setPadding(new Insets(12));
 
-        Label title = new Label("View");
+        Label title = new Label("Rotation Settings");
         title.getStyleClass().add("panel-title");
 
         CheckBox enabled = new CheckBox("Enable auto-rotation between pages");

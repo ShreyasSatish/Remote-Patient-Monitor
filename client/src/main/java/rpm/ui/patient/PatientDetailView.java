@@ -39,7 +39,7 @@ public final class PatientDetailView extends BorderPane {
         historyPanel = new HistorySearchPanel(ctx, patientId);
         historyPanel.getStyleClass().add("panel-card");
 
-        Button reportBtn = new Button("Generate Report (external website");
+        Button reportBtn = new Button("Generate Report (external website)");
         reportBtn.getStyleClass().add("primary-btn");
         reportBtn.setMaxWidth(Double.MAX_VALUE);
         reportBtn.setOnAction(e -> {
@@ -51,18 +51,19 @@ public final class PatientDetailView extends BorderPane {
         });
 
         VBox left = new VBox(12, snapshotPanel, reportBtn, historyPanel);
-        left.getStyleClass().add("patient-sidebar");
+        left.getStyleClass().add("patient-detail-view");
         left.setPrefWidth(380);
 
-        //setLeft(left);
-        //setCenter(ecgPanel);
-
         BorderPane content = new BorderPane();
-        content.getStyleClass().add("app-bg");
+        content.getStyleClass().add("patient-detail-bg");
         content.setLeft(left);
         content.setCenter(ecgPanel);
 
         setCenter(content);
+        // PatientDetailView constructor (after getStyleClass().add("app-bg"); is fine)
+        setPadding(new Insets(18, 18, 18, 18));
+        BorderPane.setMargin(ecgPanel, new Insets(0, 0, 0, 12)); // gap between sidebar and ECG
+
 
         // update frequently for ECG
         uiTick = new Timeline(new KeyFrame(Duration.millis(40), e -> refresh()));

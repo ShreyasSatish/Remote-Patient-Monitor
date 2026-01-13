@@ -340,3 +340,131 @@
     -fx-font-weight: 800;
 }
 
+/* Generic nicer button for the rest of the app */
+.btn-soft {
+    -fx-background-color: rgba(17,98,170,0.12);
+    -fx-text-fill: -rancho-blue;
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+    -fx-background-radius: 12;
+    -fx-padding: 10 14 10 14;
+}
+
+.btn-soft:hover {
+    -fx-background-color: rgba(17,98,170,0.18);
+}
+.patient-detail-bg {
+    -fx-background-color: rgba(85,191,241,0.18);
+}
+
+/* ---- Form controls (ComboBox / Spinner / DatePicker) for anything else like dropdowns ---- */
+
+.combo-box-base,
+.combo-box,
+.spinner,
+.date-picker,
+.text-field {
+    -fx-background-color: white;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: rgba(200,206,214,0.9);
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 14px;
+
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.combo-box-base:focused,
+.combo-box:focused,
+.spinner:focused,
+.date-picker:focused,
+.text-field:focused {
+    -fx-border-color: -rancho-blue2;
+    -fx-effect: dropshadow(gaussian, rgba(9,102,174,0.14), 14, 0.15, 0, 4);
+}
+
+/* dropdown arrow button */
+.combo-box-base .arrow-button,
+.date-picker .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+}
+
+/* dropdown list */
+.combo-box-popup .list-view {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: rgba(39,40,39,0.08);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 18, 0.15, 0, 8);
+    -fx-padding: 6;
+}
+
+.combo-box-popup .list-cell {
+    -fx-padding: 10 12 10 12;
+    -fx-background-radius: 10;
+    -fx-font-weight: 700;
+}
+
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: rgba(17,98,170,0.08);
+}
+
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: rgba(17,98,170,0.14);
+}
+
+/* Spinner buttons */
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: transparent;
+}
+
+
+/* ------------- Alert popup -------------*/
+.alert-popup {
+    -fx-background-color: rgba(190, 70, 70, 0.92);   /* strong red, not too dark */
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+
+    /* more visible outline */
+    -fx-border-color: rgba(255, 255, 255, 0.55);
+    -fx-border-width: 2;
+
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.22), 28, 0.2, 0, 10);
+    -fx-padding: 14;
+}
+
+.alert-title {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: 900;
+}
+
+/* alert row text */
+.alert-popup .label {
+    -fx-text-fill: rgba(255,255,255,0.96);
+    -fx-font-weight: 800;
+}
+
+/* row container (if you add a class; otherwise keep your inline style) */
+.alert-row {
+    -fx-background-color: rgba(255,255,255,0.14);
+    -fx-background-radius: 12;
+    -fx-padding: 10;
+}
+
+/* resolve buttons inside alert */
+.alert-popup .button {
+    -fx-background-color: rgba(255,255,255,0.18);
+    -fx-text-fill: white;
+    -fx-font-weight: 900;
+    -fx-background-radius: 12;
+    -fx-padding: 8 12 8 12;
+}
+
+.alert-popup .button:hover {
+    -fx-background-color: rgba(255,255,255,0.26);
+}
+

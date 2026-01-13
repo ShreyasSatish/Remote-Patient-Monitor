@@ -5,14 +5,20 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.control.Button;
 import javafx.stage.Stage;
 import rpm.domain.PatientId;
 import rpm.ui.authentication.LoginView;
 import rpm.ui.dashboard.DashboardView;
 import rpm.ui.layout.AppShell;
-import rpm.ui.menu.MenuView;
 import rpm.ui.patient.PatientDetailView;
+import rpm.ui.layout.SettingsPopup;
+
+import java.awt.*;
 
 public final class Router {
     private final Stage stage;
@@ -36,7 +42,6 @@ public final class Router {
         stage.setScene(scene);
     }
 
-
     private void setContent(Node content) {
         shell.setContent(content);
     }
@@ -48,13 +53,48 @@ public final class Router {
 
         LoginView card = new LoginView(ctx, this);
 
-        StackPane bg = new StackPane(card);
+        StackPane bg = new StackPane();
         bg.getStyleClass().add("login-bg");
 
-        StackPane.setAlignment(card, Pos.CENTER);
-        StackPane.setMargin(card, new Insets(24));
+        BorderPane wrapper = new BorderPane();
+        wrapper.setPickOnBounds(false);
+        wrapper.setCenter(card);
 
+        BorderPane.setAlignment(card, Pos.CENTER);
+        BorderPane.setMargin(card, new Insets(24));
+
+        // top-right power button
+        HBox top = new HBox();
+        top.getStyleClass().add("top-banner");
+        top.setPadding(new Insets(10, 14, 10, 14));
+        top.setAlignment(Pos.CENTER_RIGHT);
+
+        javafx.scene.control.Button powerBtn = new javafx.scene.control.Button("⏻");
+        powerBtn.getStyleClass().add("banner-btn");
+        powerBtn.setMinHeight(38);
+        powerBtn.setOnAction(e -> SettingsPopup.showLoginOnlyPowerOff(powerBtn));
+
+        top.getChildren().add(powerBtn);
+        wrapper.setTop(top);
+
+        bg.getChildren().add(wrapper);
         setContent(bg);
+    }
+
+
+    private Node buildLoginTopBar() {
+        HBox bar = new HBox();
+        bar.getStyleClass().add("top-banner"); // reuse same look
+        bar.setPadding(new Insets(10, 14, 10, 14));
+        bar.setAlignment(Pos.CENTER_RIGHT);
+
+        Button powerBtn = new Button("⏻");
+        powerBtn.getStyleClass().add("banner-btn");
+        powerBtn.setOnAction(e -> SettingsPopup.showLoginOnlyPowerOff(powerBtn));
+        powerBtn.setMinHeight(38);
+
+        bar.getChildren().add(powerBtn);
+        return bar;
     }
 
 
