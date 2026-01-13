@@ -27,8 +27,6 @@ public final class DashboardController {
     private List<PatientId> ids = new ArrayList<>();
     private int pageIndex = 0;
 
-
-    // acknowledgement (so UNTIL_RESOLVED is possible)
     private final rpm.ui.alerts.AlertAcknowledger acknowledger = new rpm.ui.alerts.AlertAcknowledger();
 
     public DashboardController(AppContext ctx, Router router, PatientGridView grid, TopBanner banner) {
@@ -100,7 +98,8 @@ public final class DashboardController {
                 .map(this::buildTile)
                 .collect(Collectors.toList());
 
-        grid.setTiles(tiles, pageIndex, pageCount(perScreen, ids.size()), showResolve);
+        grid.setTiles(tiles, pageIndex, pageCount(perScreen, ids.size()), perScreen, showResolve);
+
     }
 
     private long nowMs() { return ctx.clock.getSimTime().toEpochMilli(); }

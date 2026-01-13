@@ -2,30 +2,60 @@ package rpm.ui.app;
 
 public final class UISettings {
 
-    private int patientsPerScreen = 2;
+
+    private int patientsPerScreen = 4;
+
     private boolean rotationEnabled = false;
     private int rotationSeconds = 10;
 
+
     private AlertPreference alertPreference = AlertPreference.VISUAL_ONLY;
-    private AlertDuration alertDuration = AlertDuration.UNTIL_RESOLVED;
+    private AlertDuration alertDuration = AlertDuration.SEC_10;
 
-    public int getPatientsPerScreen() { return patientsPerScreen; }
-    public void setPatientsPerScreen(int n) { patientsPerScreen = clamp(n, 1, 16); }
+    public UISettings() {}
 
-    public boolean isRotationEnabled() { return rotationEnabled; }
-    public void setRotationEnabled(boolean enabled) { rotationEnabled = enabled; }
+    public int getPatientsPerScreen() {
+        return patientsPerScreen;
+    }
 
-    public int getRotationSeconds() { return rotationSeconds; }
-    public void setRotationSeconds(int secs) { rotationSeconds = clamp(secs, 5, 60); }
+    public void setPatientsPerScreen(int n) {
+        patientsPerScreen = clamp(n, 1, 16);
+    }
 
-    public AlertPreference getAlertPreference() { return alertPreference; }
-    public void setAlertPreference(AlertPreference pref) { if (pref != null) alertPreference = pref; }
+    public boolean isRotationEnabled() {
+        return rotationEnabled;
+    }
 
-    public AlertDuration getAlertDuration() { return alertDuration; }
-    public void setAlertDuration(AlertDuration d) { if (d != null) alertDuration = d; }
+    public void setRotationEnabled(boolean enabled) {
+        rotationEnabled = enabled;
+    }
+
+    public int getRotationSeconds() {
+        return rotationSeconds;
+    }
+
+    public void setRotationSeconds(int secs) {
+        rotationSeconds = clamp(secs, 3, 120);
+    }
+
+    public AlertPreference getAlertPreference() {
+        return alertPreference;
+    }
+
+    public void setAlertPreference(AlertPreference pref) {
+        if (pref != null) alertPreference = pref;
+    }
+
+    public AlertDuration getAlertDuration() {
+        return alertDuration;
+    }
+
+    public void setAlertDuration(AlertDuration d) {
+        if (d != null) alertDuration = d;
+    }
 
     public void resetDefaults() {
-        patientsPerScreen = 2;
+        patientsPerScreen = 4;
         rotationEnabled = false;
         rotationSeconds = 10;
         alertPreference = AlertPreference.VISUAL_ONLY;

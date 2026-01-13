@@ -5,10 +5,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.layout.HBox;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import rpm.ui.app.AppContext;
 import rpm.ui.app.NurseUser;
 import rpm.ui.app.Router;
@@ -17,18 +16,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class LoginView extends VBox {
+    private static final double CARD_WIDTH = 400;
+    private static final String LOGO_RESOURCE = "/rpm/ui/assets/rancho-logo.png";
 
-    private TextField usernameField;
-    private PasswordField passwordField;
-    private Button loginButton;
-    private Label errorLabel;
+    private final TextField usernameField;
+    private final PasswordField passwordField;
+    private final Button loginButton;
+    private final Label errorLabel;
 
     private final Map<String, String> userDatabase = new HashMap<>();
-    private static final double CARD_WIDTH = 300;
-    private static final double CARD_HEIGHT = 400;
 
     public LoginView(AppContext ctx, Router router) {
-
         userDatabase.put("juan", "abc");
         userDatabase.put("Holloway", "Nettles");
         userDatabase.put("nurse1", "securePassword1");
@@ -37,101 +35,83 @@ public final class LoginView extends VBox {
         userDatabase.put("doctor", "superSecurePassword");
         userDatabase.put("admin", "superDuperSecurePassword");
 
-        this.setMaxWidth(CARD_WIDTH);
-        this.setMaxHeight(CARD_HEIGHT);
-        this.setAlignment(Pos.CENTER_LEFT);
-        this.setSpacing(15);
-        this.setStyle(
-                "-fx-background-color: white;" +
-                        "-fx-background-radius: 15;" +
-                        "-fx-padding: 30;"
-        );
+        setMaxWidth(CARD_WIDTH);
+        setAlignment(Pos.TOP_LEFT);
+        setSpacing(10);
+        getStyleClass().add("login-card");
 
-        DropShadow dropShadow = new DropShadow();
-        dropShadow.setRadius(10.0);
-        dropShadow.setOffsetX(0.0);
-        dropShadow.setOffsetY(5.0);
-        dropShadow.setColor(Color.color(0, 0, 0, 0.3));
-        this.setEffect(dropShadow);
+        ImageView logo = buildLogo();
 
-        Label titleLabel = new Label("Login");
-        titleLabel.setStyle("-fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
-        titleLabel.setMaxWidth(Double.MAX_VALUE);
-        titleLabel.setAlignment(Pos.CENTER);
+        Label titleLabel = new Label("Sign in");
+        titleLabel.getStyleClass().add("login-title");
+
+        Label subtitle = new Label("Rancho • Remote Patient Monitoring");
+        subtitle.getStyleClass().add("login-subtitle");
 
         Label usernameLabel = new Label("Username");
-        usernameLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #34495e;");
+        usernameLabel.getStyleClass().add("login-label");
+
         usernameField = new TextField();
-        usernameField.setPromptText("Enter username");
-        usernameField.setStyle("-fx-background-radius: 5; -fx-padding: 8; -fx-font-size: 14px;");
+        usernameField.setPromptText("e.g. nurse1");
+        usernameField.getStyleClass().add("login-input");
 
         Label passwordLabel = new Label("Password");
-        passwordLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #34495e;");
+        passwordLabel.getStyleClass().add("login-label");
+
         passwordField = new PasswordField();
         passwordField.setPromptText("Enter password");
-        passwordField.setStyle("-fx-background-radius: 5; -fx-padding: 8; -fx-font-size: 14px;");
-
-        errorLabel = new Label("Invalid username or password");
-        errorLabel.setTextFill(Color.RED);
-        errorLabel.setStyle("-fx-font-size: 12px;");
-        errorLabel.setVisible(false);
+        passwordField.getStyleClass().add("login-input");
 
         loginButton = new Button("Login");
-        loginButton.setMaxWidth(150);
-        loginButton.setDisable(true); // 🔒 Disabled until fields are filled
-        loginButton.setStyle(
-                "-fx-background-color: #3498db;" +
-                        "-fx-text-fill: white;" +
-                        "-fx-font-size: 16px;" +
-                        "-fx-font-weight: bold;" +
-                        "-fx-background-radius: 5;" +
-                        "-fx-cursor: hand;"
-        );
+        loginButton.getStyleClass().add("login-button");
+        loginButton.setDisable(true);
+        loginButton.setMaxWidth(Double.MAX_VALUE);
 
-        loginButton.setOnMouseEntered(e -> loginButton.setStyle(
-                "-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 5;"
-        ));
-        loginButton.setOnMouseExited(e -> loginButton.setStyle(
-                "-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 5;"
-        ));
+        errorLabel = new Label("Invalid credentials");
+        errorLabel.getStyleClass().add("login-error");
+        errorLabel.setVisible(false);
+        errorLabel.setManaged(false);
 
-        // Enable/disable button based on field content
         usernameField.textProperty().addListener((obs, o, n) -> updateLoginButtonState());
         passwordField.textProperty().addListener((obs, o, n) -> updateLoginButtonState());
 
-        //  Mouse click login
         loginButton.setOnAction(e -> handleLogin(ctx, router));
-
-        // ⏎ Enter key login (only if enabled)
         usernameField.setOnAction(e -> tryLogin());
         passwordField.setOnAction(e -> tryLogin());
 
-        HBox buttonContainer = new HBox(10);
-        buttonContainer.setAlignment(Pos.CENTER_LEFT);
-        buttonContainer.getChildren().addAll(loginButton, errorLabel);
-
         getChildren().addAll(
+                logo,
                 titleLabel,
+                subtitle,
                 usernameLabel,
                 usernameField,
                 passwordLabel,
                 passwordField,
-                buttonContainer
+                loginButton,
+                errorLabel
         );
+    }
+
+    private ImageView buildLogo() {
+        var url = getClass().getResource(LOGO_RESOURCE);
+        if (url == null) return new ImageView();
+
+        ImageView iv = new ImageView(new Image(url.toExternalForm(), true));
+        iv.setPreserveRatio(true);
+        iv.setFitWidth(CARD_WIDTH - 40);
+        iv.setSmooth(true);
+        return iv;
     }
 
     private void updateLoginButtonState() {
         boolean filled =
                 !usernameField.getText().trim().isEmpty() &&
                         !passwordField.getText().trim().isEmpty();
-
         loginButton.setDisable(!filled);
     }
 
     private void tryLogin() {
-        if (!loginButton.isDisable()) {
-            loginButton.fire();
-        }
+        if (!loginButton.isDisable()) loginButton.fire();
     }
 
     private void handleLogin(AppContext ctx, Router router) {
@@ -146,17 +126,19 @@ public final class LoginView extends VBox {
         String user = usernameField.getText();
         String pass = passwordField.getText();
 
-        if (userDatabase.containsKey(user) && userDatabase.get(user).equals(pass)) {
-            errorLabel.setVisible(false);
+        boolean ok = userDatabase.containsKey(user) && userDatabase.get(user).equals(pass);
+        if (ok) {
+            setErrorVisible(false);
             return true;
-        } else {
-            errorLabel.setVisible(true);
-            passwordField.clear();
-            return false;
         }
+
+        setErrorVisible(true);
+        passwordField.clear();
+        return false;
     }
 
-    public String getUsername() { return usernameField.getText(); }
-    public String getPassword() { return passwordField.getText(); }
-    public Button getLoginButton() { return loginButton; }
+    private void setErrorVisible(boolean on) {
+        errorLabel.setVisible(on);
+        errorLabel.setManaged(on);
+    }
 }

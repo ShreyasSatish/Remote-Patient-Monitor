@@ -1,17 +1,18 @@
 package rpm.ui.app;
 
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
-import javafx.geometry.Pos;
 import rpm.domain.PatientId;
 import rpm.ui.authentication.LoginView;
 import rpm.ui.dashboard.DashboardView;
 import rpm.ui.layout.AppShell;
 import rpm.ui.menu.MenuView;
 import rpm.ui.patient.PatientDetailView;
-import rpm.ui.app.NurseUser;
 
 public final class Router {
     private final Stage stage;
@@ -23,7 +24,13 @@ public final class Router {
         this.ctx = ctx;
         this.shell = new AppShell(ctx, this);
 
-        stage.setScene(new Scene(shell, 1100, 750));
+        Scene scene = new Scene(shell, 1100, 750);
+        var cssUrl = Router.class.getResource("/rpm/ui/theme/rancho.css");
+        if (cssUrl != null) {
+            scene.getStylesheets().add(cssUrl.toExternalForm());
+        }
+
+        stage.setScene(scene);
     }
 
     private void setContent(Node content) {
@@ -38,25 +45,26 @@ public final class Router {
         LoginView card = new LoginView(ctx, this);
 
         StackPane bg = new StackPane(card);
-        bg.setStyle("-fx-background-color: #A0C1D1;"); // same as your old blue
+        bg.getStyleClass().add("login-bg");
+        bg.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         StackPane.setAlignment(card, Pos.CENTER);
+        StackPane.setMargin(card, new Insets(24));
 
         setContent(bg);
     }
-
 
     public void showDashboard() {
         stage.setTitle("RPM - Dashboard");
         shell.setTop(shell.getBanner());
         shell.setAlertsEnabled(true);
         setContent(new DashboardView(ctx, this, shell.getBanner()));
+
         if (ctx.session.isLoggedIn()) {
             NurseUser u = ctx.session.getUser();
             shell.getBanner().setUserText(u.getName() + " (" + u.getUsername() + ")");
         } else {
             shell.getBanner().setUserText("");
         }
-
     }
 
     public void showPatientDetail(PatientId id) {
@@ -79,12 +87,11 @@ public final class Router {
     }
 
     public void powerOffApp() {
-        javafx.application.Platform.exit();
+        Platform.exit();
     }
 
     public void restartAppUiOnly() {
         ctx.settings.resetDefaults();
         showDashboard();
     }
-
 }
