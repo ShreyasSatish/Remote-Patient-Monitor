@@ -15,6 +15,10 @@ import rpm.ui.app.Router;
 import java.util.HashMap;
 import java.util.Map;
 
+// Build the login page and present the user with a username/password
+// form. Compare credentials against a mock database and start the
+// user session taking them to the dashboard if the credentials are
+// correct
 public final class LoginView extends VBox {
     private static final double CARD_WIDTH = 400;
     private static final String LOGO_RESOURCE = "/rpm/ui/assets/rancho-logo.png";
@@ -27,6 +31,7 @@ public final class LoginView extends VBox {
     private final Map<String, String> userDatabase = new HashMap<>();
 
     public LoginView(AppContext ctx, Router router) {
+        // Populate mock database
         userDatabase.put("juan", "abc");
         userDatabase.put("Holloway", "Nettles");
         userDatabase.put("nurse1", "securePassword1");
@@ -35,6 +40,7 @@ public final class LoginView extends VBox {
         userDatabase.put("doctor", "superSecurePassword");
         userDatabase.put("admin", "superDuperSecurePassword");
 
+        // Layout config
         setMaxWidth(CARD_WIDTH);
         setAlignment(Pos.TOP_LEFT);
         setSpacing(10);
@@ -72,10 +78,13 @@ public final class LoginView extends VBox {
         errorLabel.setVisible(false);
         errorLabel.setManaged(false);
 
+        // Check if fields are empty when text changes to enable/disable login button
         usernameField.textProperty().addListener((obs, o, n) -> updateLoginButtonState());
         passwordField.textProperty().addListener((obs, o, n) -> updateLoginButtonState());
 
+        // Click login button -> handleLogin
         loginButton.setOnAction(e -> handleLogin(ctx, router));
+        // Press enter in text fields -> tryLogin
         usernameField.setOnAction(e -> tryLogin());
         passwordField.setOnAction(e -> tryLogin());
 
@@ -92,6 +101,7 @@ public final class LoginView extends VBox {
         );
     }
 
+    // Load logo image from resources and configure size
     private ImageView buildLogo() {
         var url = getClass().getResource(LOGO_RESOURCE);
         if (url == null) return new ImageView();
@@ -103,6 +113,7 @@ public final class LoginView extends VBox {
         return iv;
     }
 
+    // Disables login button if either username or password fields are empty
     private void updateLoginButtonState() {
         boolean filled =
                 !usernameField.getText().trim().isEmpty() &&
@@ -114,6 +125,7 @@ public final class LoginView extends VBox {
         if (!loginButton.isDisable()) loginButton.fire();
     }
 
+    // Starts the user session and navigates to dashboard
     private void handleLogin(AppContext ctx, Router router) {
         if (validateLogin()) {
             String user = usernameField.getText();
@@ -122,6 +134,7 @@ public final class LoginView extends VBox {
         }
     }
 
+    // Check credentials against database
     private boolean validateLogin() {
         String user = usernameField.getText();
         String pass = passwordField.getText();
