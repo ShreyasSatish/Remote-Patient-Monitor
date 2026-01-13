@@ -2688,4 +2688,4 @@ public class ecgApplet extends javax.swing.JApplet implements AdjustmentListener
     }
 
 }
-/* end of reference 2 */
+/* end of Reference [2] */

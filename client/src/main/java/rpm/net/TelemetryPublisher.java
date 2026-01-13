@@ -294,3 +294,4 @@ public final class TelemetryPublisher {
         }
     }
 }
+/* end of Reference [3] */
