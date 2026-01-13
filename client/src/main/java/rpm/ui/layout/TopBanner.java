@@ -18,10 +18,9 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import rpm.domain.PatientId;
 
+import java.net.URL;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
-
 
 public final class TopBanner extends HBox {
 
@@ -51,7 +50,7 @@ public final class TopBanner extends HBox {
         userLabel.getStyleClass().add("banner-user");
         userLabel.setText("");
 
-        searchField.getStyleClass().add("banner-search");   // ✅ fixed
+        searchField.getStyleClass().add("banner-search");
         searchField.setPromptText("Search patient / bed…");
         searchField.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(searchField, Priority.ALWAYS);
@@ -65,18 +64,20 @@ public final class TopBanner extends HBox {
                 return;
             }
 
-            var matches = ctx.ward.getPatientIds().stream()
+            List<Object[]> matches = ctx.ward.getPatientIds().stream()
                     .map(id -> {
                         var card = ctx.ward.getPatientCard(id);
-                        String label = (card != null && card.getLabel() != null) ? card.getLabel() : "Patient";
-                        String bed = id.getDisplayName();              // "Bed 04"
-                        String full = bed + " • " + label;             // shown in dropdown
+                        String label = (card != null && card.getLabel() != null)
+                                ? card.getLabel()
+                                : "Patient";
+                        String bed = id.getDisplayName();          // "Bed 04"
+                        String full = bed + " • " + label;         // shown in dropdown
                         String hay = (bed + " " + label).toLowerCase();
-                        return new Object[]{id, full, hay};
+                        return new Object[]{ id, full, hay };
                     })
-                    .filter(arr -> ((String)arr[2]).contains(q))
+                    .filter(arr -> ((String) arr[2]).contains(q))
                     .limit(8)
-                    .toList();
+                    .collect(Collectors.toList());   // compatibility across all java versions
 
             if (matches.isEmpty()) {
                 searchMenu.hide();
@@ -84,10 +85,10 @@ public final class TopBanner extends HBox {
             }
 
             searchMenu.getItems().clear();
-            for (var m : matches) {
-                var id = (rpm.domain.PatientId)m[0];
-                var text = (String)m[1];
-                var item = new javafx.scene.control.MenuItem(text);
+            for (Object[] m : matches) {
+                PatientId id = (PatientId) m[0];
+                String text = (String) m[1];
+                MenuItem item = new MenuItem(text);
                 item.setOnAction(e -> {
                     searchMenu.hide();
                     searchField.clear();
@@ -100,7 +101,6 @@ public final class TopBanner extends HBox {
                 searchMenu.show(searchField, javafx.geometry.Side.BOTTOM, 0, 0);
             }
         });
-
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -116,14 +116,16 @@ public final class TopBanner extends HBox {
         getChildren().addAll(homeBtn, userLabel, searchField, spacer, settingsBtn, powerBtn);
     }
 
-    public TextField getSearchField() { return searchField; }
+    public TextField getSearchField() {
+        return searchField;
+    }
 
     public void setUserText(String text) {
         userLabel.setText(text == null ? "" : text);
     }
 
     private ImageView buildLogo(double width) {
-        var url = getClass().getResource(LOGO_RESOURCE);
+        URL url = getClass().getResource(LOGO_RESOURCE);
         if (url == null) return new ImageView();
 
         ImageView iv = new ImageView(new Image(url.toExternalForm(), true));

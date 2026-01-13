@@ -63,14 +63,21 @@ public final class AlertOverlayController {
     }
 
     private String shortVital(VitalType t) {
-        return switch (t) {
-            case HEART_RATE -> "HR";
-            case RESP_RATE -> "RR";
-            case BP_SYSTOLIC, BP_DIASTOLIC -> "BP";
-            case TEMPERATURE -> "Temp";
-            default -> t.name();
-        };
+        switch (t) {
+            case HEART_RATE:
+                return "HR";
+            case RESP_RATE:
+                return "RR";
+            case BP_SYSTOLIC:
+            case BP_DIASTOLIC:
+                return "BP";
+            case TEMPERATURE:
+                return "Temp";
+            default:
+                return t.name();
+        }
     }
+
 
     public AlertOverlayController(AppContext ctx, AlertOverlayView view) {
         this.ctx = ctx;
