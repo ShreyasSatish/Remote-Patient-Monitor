@@ -18,21 +18,21 @@ public final class VitalSnapshotPanel extends VBox {
     private final Label bp = new Label();
     private final Label temp = new Label();
 
+
     public VitalSnapshotPanel() {
+        getStyleClass().add("panel-card");
         setSpacing(8);
         setPadding(new Insets(12));
-        setStyle(
-                "-fx-border-color: #cccccc;" +
-                        "-fx-border-radius: 10;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-background-color: white;"
-        );
 
-
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
-
+        title.getStyleClass().add("panel-title");
         getChildren().addAll(title, hr, rr, bp, temp);
+        hr.getStyleClass().add("patient-vital");
+        rr.getStyleClass().add("patient-vital");
+        bp.getStyleClass().add("patient-vital");
+        temp.getStyleClass().add("patient-vital");
+
     }
+
 
     public void setSnapshot(PatientId id, VitalSnapshot snap) {
         title.setText("Patient " + id.getDisplayName());

@@ -26,6 +26,7 @@ public final class HistorySearchPanel extends VBox {
 
     public HistorySearchPanel(AppContext ctx, PatientId patientId) {
 
+        /**
         setSpacing(8);
         setPadding(new Insets(12));
 
@@ -35,8 +36,17 @@ public final class HistorySearchPanel extends VBox {
                         "-fx-background-radius: 10;" +
                         "-fx-background-color: white;"
         );
+         **/
 
-     // allows autosizing of boxes
+        getStyleClass().add("panel-card");
+        setSpacing(8);
+        setPadding(new Insets(12));
+
+        // title.getStyleClass().add("panel-title");
+        // getChildren().addAll(title, hr, rr, bp, temp);
+
+
+        // allows autosizing of boxes
         setMinHeight(Region.USE_COMPUTED_SIZE);
         setPrefHeight(Region.USE_COMPUTED_SIZE);
         setMaxHeight(Region.USE_COMPUTED_SIZE);

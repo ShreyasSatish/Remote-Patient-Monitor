@@ -11,20 +11,16 @@ import java.util.EnumSet;
 public final class AddPatientPanel extends VBox {
 
     public AddPatientPanel(AppContext ctx) {
-        setSpacing(8);
-        setPadding(new Insets(12));setStyle(
-                "-fx-border-color: #cccccc;" +
-                        "-fx-border-radius: 10;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-background-color: white;"
-        );
 
+        getStyleClass().add("panel-card");
+        setSpacing(10);
+        setPadding(new Insets(12));
 
         Label title = new Label("Add patient");
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
+        title.getStyleClass().add("panel-title");
 
         TextField name = new TextField();
-        name.setPromptText("Name (UI only for now)");
+        name.setPromptText("Name");
 
         Spinner<Integer> age = new Spinner<>(0, 120, 30);
         age.setEditable(true);
@@ -40,9 +36,10 @@ public final class AddPatientPanel extends VBox {
         );
         condition.setValue("Healthy");
 
-
-
         Button add = new Button("Add patient");
+        add.getStyleClass().add("banner-btn"); // or create "primary-btn"
+        add.setMaxWidth(Double.MAX_VALUE);
+
         add.setOnAction(e -> {
             String label = name.getText().trim();
             if (label.isEmpty()) label = "Patient";
@@ -83,15 +80,13 @@ public final class AddPatientPanel extends VBox {
                     + " | condition=" + c);
         });
 
-
-
         getChildren().addAll(title,
                 new Label("Name:"), name,
                 new Label("Age:"), age,
                 new Label("Condition:"), condition,
-                add,
-                new Label("Note: metadata is not yet stored in simulation; this is UI-ready."),
-                new Label("Next step: add WardManager.addPatient(label, conditions) overload.")
+                add
         );
     }
 }
+
+

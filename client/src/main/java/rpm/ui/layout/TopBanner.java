@@ -21,7 +21,7 @@ public final class TopBanner extends HBox {
     private final Button homeBtn = new Button();
     private final Label userLabel = new Label();
     private final TextField searchField = new TextField();
-    private final Button menuBtn = new Button("Menu");
+    private final Button settingsBtn = new Button("Settings");
     private final Button powerBtn = new Button("⏻");
 
     public TopBanner(AppContext ctx, Router router) {
@@ -32,8 +32,7 @@ public final class TopBanner extends HBox {
 
         homeBtn.getStyleClass().add("banner-home");
         homeBtn.setOnAction(e -> router.showDashboard());
-
-        homeBtn.setGraphic(buildLogo(34));     // <- was 22
+        homeBtn.setGraphic(buildLogo(34));
         homeBtn.setText("Rancho");
         homeBtn.setGraphicTextGap(10);
         homeBtn.setContentDisplay(ContentDisplay.LEFT);
@@ -42,7 +41,7 @@ public final class TopBanner extends HBox {
         userLabel.getStyleClass().add("banner-user");
         userLabel.setText("");
 
-        searchField.getStyleClass().add("banner-search");
+        searchField.getStyleClass().add("banner-search");   // ✅ fixed
         searchField.setPromptText("Search patient / bed…");
         searchField.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(searchField, Priority.ALWAYS);
@@ -50,20 +49,18 @@ public final class TopBanner extends HBox {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        menuBtn.getStyleClass().add("banner-btn");
-        menuBtn.setOnAction(e -> router.showMenu());
-        menuBtn.setMinHeight(38);
+        settingsBtn.getStyleClass().add("banner-btn");
+        settingsBtn.setOnAction(e -> router.showSettings());
+        settingsBtn.setMinHeight(38);
 
         powerBtn.getStyleClass().add("banner-btn");
-        powerBtn.setOnAction(e -> router.powerOffApp());
+        powerBtn.setOnAction(e -> SettingsPopup.show(powerBtn, ctx, router));
         powerBtn.setMinHeight(38);
 
-        getChildren().addAll(homeBtn, userLabel, searchField, spacer, menuBtn, powerBtn);
+        getChildren().addAll(homeBtn, userLabel, searchField, spacer, settingsBtn, powerBtn);
     }
 
-    public TextField getSearchField() {
-        return searchField;
-    }
+    public TextField getSearchField() { return searchField; }
 
     public void setUserText(String text) {
         userLabel.setText(text == null ? "" : text);
