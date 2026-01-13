@@ -1,17 +1,24 @@
 package rpm.ui.app;
 
+import javafx.application.Platform;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.control.Button;
 import javafx.stage.Stage;
-import javafx.geometry.Pos;
 import rpm.domain.PatientId;
 import rpm.ui.authentication.LoginView;
 import rpm.ui.dashboard.DashboardView;
 import rpm.ui.layout.AppShell;
-import rpm.ui.menu.MenuView;
 import rpm.ui.patient.PatientDetailView;
-import rpm.ui.app.NurseUser;
+import rpm.ui.layout.SettingsPopup;
+
+import java.awt.*;
 
 public final class Router {
     private final Stage stage;
@@ -23,7 +30,16 @@ public final class Router {
         this.ctx = ctx;
         this.shell = new AppShell(ctx, this);
 
-        stage.setScene(new Scene(shell, 1100, 750));
+        Scene scene = new Scene(shell, 1100, 750);
+
+        var cssUrl = Router.class.getResource("/rpm/ui/theme/rancho.css");
+        if (cssUrl != null) {
+            scene.getStylesheets().add(cssUrl.toExternalForm());
+        } else {
+            System.out.println("WARN: rancho.css not found on classpath");
+        }
+
+        stage.setScene(scene);
     }
 
     private void setContent(Node content) {
@@ -37,11 +53,48 @@ public final class Router {
 
         LoginView card = new LoginView(ctx, this);
 
-        StackPane bg = new StackPane(card);
-        bg.setStyle("-fx-background-color: #A0C1D1;"); // same as your old blue
-        StackPane.setAlignment(card, Pos.CENTER);
+        StackPane bg = new StackPane();
+        bg.getStyleClass().add("login-bg");
 
+        BorderPane wrapper = new BorderPane();
+        wrapper.setPickOnBounds(false);
+        wrapper.setCenter(card);
+
+        BorderPane.setAlignment(card, Pos.CENTER);
+        BorderPane.setMargin(card, new Insets(24));
+
+        // top-right power button
+        HBox top = new HBox();
+        top.getStyleClass().add("top-banner");
+        top.setPadding(new Insets(10, 14, 10, 14));
+        top.setAlignment(Pos.CENTER_RIGHT);
+
+        javafx.scene.control.Button powerBtn = new javafx.scene.control.Button("⏻");
+        powerBtn.getStyleClass().add("banner-btn");
+        powerBtn.setMinHeight(38);
+        powerBtn.setOnAction(e -> SettingsPopup.showLoginOnlyPowerOff(powerBtn));
+
+        top.getChildren().add(powerBtn);
+        wrapper.setTop(top);
+
+        bg.getChildren().add(wrapper);
         setContent(bg);
+    }
+
+
+    private Node buildLoginTopBar() {
+        HBox bar = new HBox();
+        bar.getStyleClass().add("top-banner"); // reuse same look
+        bar.setPadding(new Insets(10, 14, 10, 14));
+        bar.setAlignment(Pos.CENTER_RIGHT);
+
+        Button powerBtn = new Button("⏻");
+        powerBtn.getStyleClass().add("banner-btn");
+        powerBtn.setOnAction(e -> SettingsPopup.showLoginOnlyPowerOff(powerBtn));
+        powerBtn.setMinHeight(38);
+
+        bar.getChildren().add(powerBtn);
+        return bar;
     }
 
 
@@ -49,15 +102,11 @@ public final class Router {
         stage.setTitle("RPM - Dashboard");
         shell.setTop(shell.getBanner());
         shell.setAlertsEnabled(true);
-        setContent(new DashboardView(ctx, this, shell.getBanner()));
-        if (ctx.session.isLoggedIn()) {
-            NurseUser u = ctx.session.getUser();
-            shell.getBanner().setUserText(u.getName() + " (" + u.getUsername() + ")");
-        } else {
-            shell.getBanner().setUserText("");
-        }
 
+        setContent(new DashboardView(ctx, this, shell.getBanner()));
+        updateBannerUser();
     }
+
 
     public void showPatientDetail(PatientId id) {
         stage.setTitle("RPM - Patient " + id.getDisplayName());
@@ -66,11 +115,21 @@ public final class Router {
         setContent(new PatientDetailView(ctx, this, id));
     }
 
-    public void showMenu() {
-        stage.setTitle("RPM - Menu");
+    public void showSettings() {
+        stage.setTitle("RPM - Settings");
         shell.setTop(shell.getBanner());
         shell.setAlertsEnabled(true);
-        setContent(new MenuView(ctx, this));
+        setContent(new rpm.ui.menu.MenuView(ctx, this));
+
+        updateBannerUser();
+        /**
+        stage.setTitle("RPM - Patient " + id.getDisplayName());
+        shell.setTop(shell.getBanner());
+        shell.setAlertsEnabled(true);
+
+        setContent(new PatientDetailView(ctx, this, id));
+        updateBannerUser();
+         **/ // this is the new code
     }
 
     public void logout() {
@@ -79,7 +138,7 @@ public final class Router {
     }
 
     public void powerOffApp() {
-        javafx.application.Platform.exit();
+        Platform.exit();
     }
 
     public void restartAppUiOnly() {
@@ -87,4 +146,12 @@ public final class Router {
         showDashboard();
     }
 
+    private void updateBannerUser() {
+        if (ctx.session.isLoggedIn()) {
+            NurseUser u = ctx.session.getUser();
+            shell.getBanner().setUserText(u.getName() + " (" + u.getUsername() + ")");
+        } else {
+            shell.getBanner().setUserText("");
+        }
+    }
 }

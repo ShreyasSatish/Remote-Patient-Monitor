@@ -14,7 +14,6 @@ import rpm.ui.app.Router;
 public final class AppShell extends BorderPane {
 
     private final TopBanner banner;
-
     private final StackPane stack = new StackPane();
     private final BorderPane contentPane = new BorderPane();
 
@@ -24,16 +23,17 @@ public final class AppShell extends BorderPane {
     private final Timeline alertTick;
     private boolean alertsEnabled = true;
 
+
     public AppShell(AppContext ctx, Router router) {
         this.banner = new TopBanner(ctx, router);
+
+        getStyleClass().add("app-bg");
+        stack.getStyleClass().add("app-bg");
+        contentPane.getStyleClass().add("app-bg");
+
         setTop(banner);
 
         overlayController = new AlertOverlayController(ctx, overlayView);
-
-        // forces a blue background
-        contentPane.setStyle("-fx-background-color: #A0C1D1;");
-        stack.setStyle("-fx-background-color: #A0C1D1;");
-        setStyle("-fx-background-color: #A0C1D1;");
 
         stack.getChildren().addAll(contentPane, overlayView);
         setCenter(stack);
@@ -57,8 +57,5 @@ public final class AppShell extends BorderPane {
 
     public void setAlertsEnabled(boolean enabled) {
         this.alertsEnabled = enabled;
-        if (!enabled) {
-            overlayController.forceStop();
-        }
     }
 }

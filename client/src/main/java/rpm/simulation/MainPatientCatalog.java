@@ -6,6 +6,7 @@ public final class MainPatientCatalog {
     private MainPatientCatalog() {
     }
 
+    // Build the minimum 8 patients, giving them predetermined conditions
     public static PatientTemplate templateForBed(int bedNumber) {
         switch (bedNumber) {
             case 1:

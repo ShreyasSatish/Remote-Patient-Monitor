@@ -9,18 +9,13 @@ import rpm.ui.app.AppContext;
 public final class ViewSettingsPanel extends VBox {
 
     public ViewSettingsPanel(AppContext ctx) {
+
+        getStyleClass().add("panel-card");
         setSpacing(8);
         setPadding(new Insets(12));
-        setStyle(
-                "-fx-border-color: #cccccc;" +
-                        "-fx-border-radius: 10;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-background-color: white;"
-        );
-
 
         Label title = new Label("View");
-        title.setStyle("-fx-font-weight: bold; -fx-font-size: 14;");
+        title.getStyleClass().add("panel-title");
 
         Label current = new Label();
 

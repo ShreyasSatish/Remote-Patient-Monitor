@@ -17,9 +17,6 @@ public final class VitalAlarmStatus {
         this.since = since;
     }
 
-    // shreyas: these will be helpful used when UI is set up
-    // - sohani
-
     public VitalType getType() { return type; }
     public AlarmLevel getLevel() { return level; }
     public String getReason() { return reason; }

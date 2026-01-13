@@ -31,6 +31,7 @@ public class TemperatureSimulator implements VitalSimulator {
         this.currentTempC = baselineTempC;
     }
 
+    // Step time and find new values of temperature
     @Override
     public double nextValue(Instant time) {
         double randomStep = random.nextGaussian() * 0.02;

@@ -33,11 +33,15 @@ public class HeartRateSimulator implements VitalSimulator {
 
     @Override
     public double nextValue(Instant time) {
+        // Step heart rate value
+
         double randomStep = random.nextGaussian() * 1.5;
+        // Pull heart rate slightly back to 'normal' value
         double pullToBaseline = (baselineBpm - currentBpm) * 0.05;
 
         currentBpm = currentBpm + randomStep + pullToBaseline;
 
+        // Change min and max values
         if (currentBpm < minBpm) {
             currentBpm = minBpm;
         } else if (currentBpm > maxBpm) {

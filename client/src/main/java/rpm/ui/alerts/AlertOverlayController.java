@@ -13,6 +13,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import rpm.domain.VitalType;
+import rpm.domain.alarm.VitalAlarmStatus;
+
 public final class AlertOverlayController {
 
     private final AppContext ctx;
@@ -27,6 +30,47 @@ public final class AlertOverlayController {
 
     // avoid re-showing the same alert set every second
     private String lastSignature = "";
+
+    private String reasonFor(PatientId id) {
+        AlarmState s = ctx.alarms.getState(id);
+        if (s == null) return "Out of range";
+
+        var byVital = s.getByVital();
+        if (byVital == null || byVital.isEmpty()) return "Out of range";
+
+        // prefer RED over AMBER; otherwise pick any
+        VitalType bestType = null;
+        AlarmLevel bestLevel = AlarmLevel.GREEN;
+
+        for (var e : byVital.entrySet()) {
+            VitalType vt = e.getKey();
+            VitalAlarmStatus st = e.getValue();
+            if (st == null) continue;
+
+            AlarmLevel lvl = st.getLevel(); // if this doesn't compile, see note below
+            if (lvl == null) continue;
+
+            if (bestType == null || lvl.ordinal() > bestLevel.ordinal()) {
+                bestType = vt;
+                bestLevel = lvl;
+            }
+        }
+
+        if (bestType == null) return "Out of range";
+        return shortVital(bestType) + " out of range";
+    }
+
+
+    private String shortVital(VitalType t) {
+        return switch (t) {
+            case HEART_RATE -> "HR";
+            case RESP_RATE -> "RR";
+            case BP_SYSTOLIC, BP_DIASTOLIC -> "BP";
+            case TEMPERATURE -> "Temp";
+            default -> t.name();
+        };
+    }
+
 
     public AlertOverlayController(AppContext ctx, AlertOverlayView view) {
         this.ctx = ctx;
@@ -90,7 +134,7 @@ public final class AlertOverlayController {
             popupActive = true;
             lastSignature = signature;
 
-            view.showAlerts(buildItems(alerting), false);
+            view.showAlerts(buildItems(alerting), true);
             return;
         }
 
@@ -101,7 +145,7 @@ public final class AlertOverlayController {
             return;
         }
 
-        view.showAlerts(buildItems(alerting), false);
+        view.showAlerts(buildItems(alerting), true);
     }
 
     private List<AlertOverlayView.AlertPopupItem> buildItems(List<PatientId> alerting) {
@@ -109,8 +153,7 @@ public final class AlertOverlayController {
         for (PatientId id : alerting) {
             items.add(new AlertOverlayView.AlertPopupItem(
                     id,
-                    patientName(id),
-                    "Out of range vitals"
+                    reasonFor(id)
             ));
         }
         return items;

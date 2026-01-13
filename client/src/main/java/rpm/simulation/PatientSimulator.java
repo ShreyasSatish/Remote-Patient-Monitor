@@ -74,6 +74,7 @@ public class PatientSimulator {
         return EnumSet.copyOf(chronicConditions);
     }
 
+    // Triggers a medical event
     public void triggerEvent(PatientEventType type, Instant startTime) {
         if (type == null || startTime == null) return;
         if (activeEvents.size() >= 2) return;
@@ -95,6 +96,7 @@ public class PatientSimulator {
         return out;
     }
 
+    // Steps the time and updates vitals
     public VitalSnapshot nextSnapshot(Instant time) {
         removeFinishedEvents(time);
         maybeStartRandomEvent(time);
@@ -133,6 +135,7 @@ public class PatientSimulator {
         return new VitalSnapshot(time, values);
     }
 
+    // Update ECG
     public void advanceEcg(double durationSeconds) {
         if (durationSeconds <= 0.0) return;
 
@@ -160,6 +163,7 @@ public class PatientSimulator {
         return ecgSamplingFrequencyHz;
     }
 
+    // Adjust vitals based on chronic condition
     private void applyChronicModifiers(VitalDelta d) {
         if (chronicConditions.contains(ChronicCondition.HYPERTENSION)) {
             d.sys += 6.0;
@@ -185,6 +189,7 @@ public class PatientSimulator {
         }
     }
 
+    // Adjust vitals based if there is an active event
     private void applyEventModifiers(Instant time, VitalDelta d) {
         for (PatientEvent e : activeEvents) {
             double k = e.intensityAt(time);
@@ -199,6 +204,7 @@ public class PatientSimulator {
         }
     }
 
+    // Grad largest change in vital
     private VitalDelta peakDeltaFor(PatientEventType type) {
         VitalDelta d = new VitalDelta();
         switch (type) {
@@ -261,6 +267,7 @@ public class PatientSimulator {
         }
     }
 
+    // Randomly start a medical event
     private void maybeStartRandomEvent(Instant time) {
         if (activeEvents.size() >= 2) return;
 
@@ -278,6 +285,7 @@ public class PatientSimulator {
         triggerEvent(type, time);
     }
 
+    // Manually start a medical event
     private PatientEventType chooseEventType() {
         double r = modifierRandom.nextDouble();
 
