@@ -10,6 +10,8 @@ import rpm.domain.PatientId;
 import java.util.List;
 import java.util.function.Consumer;
 
+// UI for newer alert popup system
+
 public final class AlertOverlayView extends StackPane {
 
     private final VBox box = new VBox(10);
@@ -22,17 +24,16 @@ public final class AlertOverlayView extends StackPane {
 
     public AlertOverlayView() {
 
-        setPickOnBounds(false);              // only capture clicks on the popup itself
+        setPickOnBounds(false);     // only capture clicks on the popup itself
         setMouseTransparent(true);
         box.setMouseTransparent(false);
 
-        // Center-top container (you can change to bottom-right if you want)
         StackPane.setAlignment(box, Pos.CENTER);
         StackPane.setMargin(box, new Insets(12));
 
         box.getStyleClass().add("alert-popup");
         title.getStyleClass().add("alert-title");
-        dismissAll.getStyleClass().add("resolve-btn"); // or a new "primary-btn"
+        dismissAll.getStyleClass().add("resolve-btn");
 
         dismissAll.setOnAction(e -> onResolveAll.run());
 
@@ -120,7 +121,7 @@ public final class AlertOverlayView extends StackPane {
 
     public static final class AlertPopupItem {
         public final PatientId id;
-        public final String reason; // e.g. "HR out of range"
+        public final String reason;
 
         public AlertPopupItem(PatientId id, String reason) {
             this.id = id;
