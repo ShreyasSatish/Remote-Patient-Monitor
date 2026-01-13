@@ -3,10 +3,7 @@ package rpm.domain;
 import java.time.Instant;
 import java.util.Map;
 
-/**
- * Immutable snapshot of all vitals at a single point in time.
- * Holds a timestamp and a map of vital types to their numeric values.
- */
+
 
 public class VitalSnapshot {
 

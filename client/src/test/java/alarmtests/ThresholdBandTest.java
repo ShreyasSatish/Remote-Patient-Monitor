@@ -19,4 +19,6 @@ class ThresholdBandTest {
         assertEquals(100, band.highAmber);
         assertEquals(120, band.highRed);
     }
+
+
 }

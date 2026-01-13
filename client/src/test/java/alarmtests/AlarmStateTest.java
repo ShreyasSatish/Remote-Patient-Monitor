@@ -75,4 +75,7 @@ class AlarmStateTest {
         //Assert
         assertEquals(AlarmLevel.RED, overall);
     }
+
+
 }
+
