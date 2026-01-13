@@ -1,5 +1,5 @@
-/**
- * Reference [3]
+/*
+ * Reference [3] taken from https://docs.oracle.com/en/java/javase/11/docs/api/java.net.http/java/net/http/HttpClient.html
  *
  * This class implements periodic telemetry publishing using the Java
  * standard HTTP client (java.net.http.HttpClient). It packages patient
