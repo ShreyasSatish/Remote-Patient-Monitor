@@ -4,6 +4,7 @@ public final class PatientScenarioFactory {
     private PatientScenarioFactory() {
     }
 
+    // Makes specific patient scenarios
     public static PatientSimulator create(PatientScenario scenario) {
         HeartRateSimulator hrSim = new HeartRateSimulator(
                 scenario.getHrBaseline(),

@@ -73,6 +73,7 @@ public class WardManager {
     }
 
 
+    // Add a patient with the specified parameters
     public synchronized PatientId addPatient(String label, EnumSet<ChronicCondition> conditions) {
         PatientId id = addPatientInternal(Instant.now());
 
@@ -86,7 +87,7 @@ public class WardManager {
     }
 
 
-
+    // Remove a specific patient with the specified ID
     public synchronized boolean removePatient(PatientId id) {
         if (id == null || !patients.containsKey(id)) return false;
         if (id.getValue() <= MIN_PATIENTS) return false;
@@ -103,6 +104,7 @@ public class WardManager {
         return true;
     }
 
+    // Trigger a medical event for the patient
     public synchronized void triggerEvent(PatientId id, PatientEventType type) {
         triggerEvent(id, type, Instant.now());
     }
@@ -113,6 +115,8 @@ public class WardManager {
         sim.triggerEvent(type, time);
     }
 
+    // Step time, advance EGCs for each patient
+    // Add vital snapshots and events into respective lists
     public synchronized void tick(Instant time, double dtSeconds) {
         List<WardDataListener> ls = new ArrayList<>(listeners);
 
@@ -161,6 +165,7 @@ public class WardManager {
         }
     }
 
+    // Get a table of all the vitals
     public synchronized List<PatientVitalsRow> getLatestVitalsTable() {
         List<PatientVitalsRow> rows = new ArrayList<>(patients.size());
 
@@ -205,6 +210,7 @@ public class WardManager {
         return getPatientLastEcgSegment(selectedPatientId);
     }
 
+    // Add a patient with baseline vitals
     private PatientId addPatientInternal(Instant now) {
         PatientId id = new PatientId(nextIdValue++);
         int bed = id.getValue();

@@ -27,6 +27,7 @@ public final class PatientProfile {
     public double getBpDiaBaseline() { return bpDiaBaseline; }
     public double getTempBaseline() { return tempBaseline; }
 
+    // Generates normal vital values
     public static PatientProfile generateNormal(PatientScenario scenario, Random random) {
         double hr = clamp(scenario.getHrBaseline() + random.nextGaussian() * 3.0,
                 scenario.getHrMin() + 1.0, scenario.getHrMax() - 1.0);
