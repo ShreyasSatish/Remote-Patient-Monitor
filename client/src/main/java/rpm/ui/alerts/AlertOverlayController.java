@@ -16,6 +16,9 @@ import java.util.stream.Collectors;
 import rpm.domain.VitalType;
 import rpm.domain.alarm.VitalAlarmStatus;
 
+
+// UI for newer alert popup system
+
 public final class AlertOverlayController {
 
     private final AppContext ctx;
@@ -38,7 +41,6 @@ public final class AlertOverlayController {
         var byVital = s.getByVital();
         if (byVital == null || byVital.isEmpty()) return "Out of range";
 
-        // prefer RED over AMBER; otherwise pick any
         VitalType bestType = null;
         AlarmLevel bestLevel = AlarmLevel.GREEN;
 
@@ -47,7 +49,7 @@ public final class AlertOverlayController {
             VitalAlarmStatus st = e.getValue();
             if (st == null) continue;
 
-            AlarmLevel lvl = st.getLevel(); // if this doesn't compile, see note below
+            AlarmLevel lvl = st.getLevel();
             if (lvl == null) continue;
 
             if (bestType == null || lvl.ordinal() > bestLevel.ordinal()) {
@@ -60,7 +62,6 @@ public final class AlertOverlayController {
         return shortVital(bestType) + " out of range";
     }
 
-
     private String shortVital(VitalType t) {
         return switch (t) {
             case HEART_RATE -> "HR";
@@ -70,7 +71,6 @@ public final class AlertOverlayController {
             default -> t.name();
         };
     }
-
 
     public AlertOverlayController(AppContext ctx, AlertOverlayView view) {
         this.ctx = ctx;
@@ -96,7 +96,7 @@ public final class AlertOverlayController {
             return;
         }
 
-        // ALWAYS start audio when alerts exist (AudioAlertManager respects preference + duration)
+        // Start audio when alerts exist, based on settings preference
         audio.startFor(nowMs);
 
         AlertDuration mode = ctx.settings.getAlertDuration();
@@ -138,7 +138,7 @@ public final class AlertOverlayController {
             return;
         }
 
-        // popup is active: if expired -> hide; else keep visible
+        // popup is active: if expired then hide, otherwise keep visible
         if (nowMs >= popupEndsAtMs) {
             popupActive = false;
             view.hide();
